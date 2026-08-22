@@ -1,0 +1,2714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Ghar</title>
+    <meta name="theme-color" content="#f5f6f8">
+    <script>(function(){try{var t=localStorage.getItem('f6_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;var g=localStorage.getItem('f6_glass')||'off';document.documentElement.dataset.glass=g;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0d0e12':'#f5f6f8');}catch(e){}})();</script>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏠</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============ design tokens ============ */
+        :root {
+            --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef0f4; --surface-3: #e3e6ec;
+            --ink: #171921; --ink-2: #3d4250; --ink-3: #697082; --ink-4: #9aa1b0;
+            --border: #e4e7ec; --border-soft: #edeff3;
+            --accent: #5560f0; --accent-2: #7e5cf0; --accent-hover: #4650dd; --accent-ink: #3f49cf; --accent-soft: #edeffe;
+            --on-accent: #ffffff; --ring: rgba(85,96,240,.22);
+            --tab-active: #ffffff; --input-bg: #ffffff;
+            --success-soft: #e2f5e9; --success-ink: #1d7a44;
+            --warn-soft: #fbf3de; --warn-ink: #8a6116; --warn-border: #efe0ba;
+            --danger: #d64545; --danger-hover: #c23a3a; --danger-ink: #c03434; --danger-soft: #fdecec; --danger-border: #f3cdcd;
+            --wa: #25d366; --wa-hover: #1fb457;
+            --row-current: #f2f3fe;
+            --toast-bg: #1c1f27; --toast-ink: #ffffff;
+            --shadow-card: 0 1px 2px rgba(18,20,30,.04), 0 10px 30px rgba(18,20,30,.06);
+            --shadow-pop: 0 24px 60px rgba(18,20,30,.25);
+            color-scheme: light;
+        }
+        [data-theme="dark"] {
+            --bg: #0d0e12; --surface: #15171d; --surface-2: #1d2028; --surface-3: #272b35;
+            --ink: #f1f2f6; --ink-2: #c4c8d3; --ink-3: #8d93a3; --ink-4: #616879;
+            --border: #262a34; --border-soft: #1f222b;
+            --accent: #7b85ff; --accent-2: #9d7ffb; --accent-hover: #8d96ff; --accent-ink: #a3aaff; --accent-soft: rgba(123,133,255,.14);
+            --on-accent: #0e1020; --ring: rgba(123,133,255,.3);
+            --tab-active: #272b35; --input-bg: #101218;
+            --success-soft: rgba(64,200,130,.14); --success-ink: #59d394;
+            --warn-soft: rgba(235,185,90,.12); --warn-ink: #e0b45d; --warn-border: rgba(235,185,90,.28);
+            --danger: #e15b5b; --danger-hover: #ea6d6d; --danger-ink: #f19a9a; --danger-soft: rgba(225,91,91,.13); --danger-border: rgba(225,91,91,.3);
+            --wa: #25d366; --wa-hover: #1da851;
+            --row-current: rgba(123,133,255,.09);
+            --toast-bg: #f1f2f6; --toast-ink: #15171d;
+            --shadow-card: 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.4);
+            --shadow-pop: 0 24px 60px rgba(0,0,0,.55);
+            color-scheme: dark;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
+
+        /* ============================================================
+           iOS "Liquid Glass" mode — opt-in via <html data-glass="on">.
+           An ambient colorful gradient sits behind the whole app; every
+           surface becomes translucent frosted glass over it. The clean
+           default theme is untouched when glass is off.
+           ============================================================ */
+        [data-glass="on"] {
+          /* glass surface tints (translucent, not solid) */
+          --glass: rgba(255,255,255,.55);
+          --glass-2: rgba(255,255,255,.42);
+          --glass-3: rgba(255,255,255,.30);
+          --glass-border: rgba(255,255,255,.55);
+          --glass-hi: rgba(255,255,255,.85);        /* top-edge highlight that sells "glass" */
+          --glass-blur: saturate(1.8) blur(20px);
+          --glass-shadow: 0 8px 32px rgba(31,38,90,.12), inset 0 1px 0 var(--glass-hi), inset 0 0 0 1px rgba(255,255,255,.18);
+        }
+        [data-glass="on"][data-theme="dark"] {
+          --glass: rgba(30,33,48,.52);
+          --glass-2: rgba(30,33,48,.40);
+          --glass-3: rgba(30,33,48,.28);
+          --glass-border: rgba(255,255,255,.14);
+          --glass-hi: rgba(255,255,255,.22);
+          --glass-blur: saturate(1.6) blur(22px);
+          --glass-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 var(--glass-hi), inset 0 0 0 1px rgba(255,255,255,.06);
+        }
+
+        /* ambient gradient + floating colour blobs behind everything */
+        [data-glass="on"] body { position: relative; background: #eef1f8; }
+        [data-glass="on"][data-theme="dark"] body { background: #0a0b12; }
+        [data-glass="on"] body::before {
+          content: ''; position: fixed; inset: -20% -10% -10%; z-index: -2; pointer-events: none;
+          background:
+            radial-gradient(42% 38% at 18% 20%, rgba(120,140,255,.55), transparent 60%),
+            radial-gradient(40% 40% at 82% 16%, rgba(255,150,120,.48), transparent 60%),
+            radial-gradient(46% 44% at 78% 82%, rgba(120,220,180,.46), transparent 62%),
+            radial-gradient(44% 42% at 14% 84%, rgba(210,140,255,.44), transparent 60%),
+            radial-gradient(50% 50% at 50% 50%, rgba(255,215,140,.30), transparent 70%);
+          filter: saturate(1.05);
+          animation: glassdrift 26s ease-in-out infinite alternate;
+        }
+        [data-glass="on"][data-theme="dark"] body::before { filter: saturate(1.1) brightness(.7); }
+        [data-glass="on"] body::after {
+          content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+          backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+          background: rgba(255,255,255,.04);
+        }
+        @keyframes glassdrift {
+          0%   { transform: translate3d(0,0,0) scale(1); }
+          100% { transform: translate3d(0,-3%,0) scale(1.08); }
+        }
+        @media (prefers-reduced-motion: reduce) { [data-glass="on"] body::before { animation: none; } }
+
+        /* frost every surface */
+        [data-glass="on"] .card,
+        [data-glass="on"] .banner-setup,
+        [data-glass="on"] .me-chip,
+        [data-glass="on"] .stat-card,
+        [data-glass="on"] .task-chip,
+        [data-glass="on"] .msg-preview,
+        [data-glass="on"] .saved-menu,
+        [data-glass="on"] .modal,
+        [data-glass="on"] .input,
+        [data-glass="on"] .btn,
+        [data-glass="on"] .tabs {
+          background: var(--glass); border-color: var(--glass-border);
+          -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+        }
+        [data-glass="on"] .card, [data-glass="on"] .modal { box-shadow: var(--glass-shadow); }
+        [data-glass="on"] .card.shadow { box-shadow: var(--glass-shadow); }
+        [data-glass="on"] .tabbar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+        [data-glass="on"] .tabs { box-shadow: var(--glass-shadow); }
+        [data-glass="on"] .tab.active { background: var(--glass-hi); }
+        [data-glass="on"] .input { background: var(--glass-3); }
+        [data-glass="on"] .input:focus { background: var(--glass-2); }
+        /* keep primary/wa/danger buttons vivid — they're the accent, not glass */
+        [data-glass="on"] .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+        [data-glass="on"] .btn.wa { background: var(--wa); -webkit-backdrop-filter: none; backdrop-filter: none; }
+        [data-glass="on"] .btn.danger { background: var(--danger); -webkit-backdrop-filter: none; backdrop-filter: none; }
+        [data-glass="on"] .hero-glow { opacity: .5; mix-blend-mode: overlay; }
+        [data-glass="on"] .to-top { background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-color: var(--glass-border); }
+        /* readability: text needs a touch more weight over busy backgrounds */
+        [data-glass="on"] .brand { text-shadow: 0 1px 12px rgba(255,255,255,.25); }
+        [data-glass="on"][data-theme="dark"] .brand { text-shadow: 0 1px 14px rgba(0,0,0,.4); }
+
+        body { background: var(--bg); font-family: 'Inter', Helvetica, Arial, sans-serif; color: var(--ink); }
+        a { color: var(--accent-ink); }
+        a:hover { color: var(--accent); }
+        ::selection { background: var(--accent-soft); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 8px; }
+        button, input, select, textarea { font-family: inherit; }
+        button:focus-visible, a:focus-visible, .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* smooth theme switch (class added only during the toggle) */
+        html.theming, html.theming *, html.theming *::before, html.theming *::after {
+            transition: background-color .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease, fill .3s ease !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
+
+        .wrap { min-height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 80px; }
+        .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
+        .container > .tabbar { margin-top: 0; }
+        .container > .header + .tabbar { margin-top: -8px; }
+
+        /* ============ header ============ */
+        .header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 4px; }
+        .brand-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .logo-mark { width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 4px 14px var(--ring), inset 0 1px 0 rgba(255,255,255,.25); }
+        .brand { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 23px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+        .sub { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
+        .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: background .15s, border-color .15s, transform .06s; }
+        .icon-btn:hover { background: var(--surface-2); }
+        .icon-btn:active { transform: scale(.94); }
+
+        .me-chip { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 6px; border-radius: 100px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); }
+
+        .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
+        .tab { position: relative; padding: 8px 16px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--ink-3); transition: color .15s, background .15s, box-shadow .15s; border: none; background: transparent; }
+        .tab:hover { color: var(--ink); }
+        .tab.active { background: var(--tab-active); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* sticky frosted tab bar — navigation stays reachable while the brand scrolls away */
+        .tabbar { position: sticky; top: 0; z-index: 30; margin: -4px -4px 0; padding: 10px 4px; display: flex; justify-content: flex-end;
+                  background: color-mix(in oklab, var(--bg) 72%, transparent);
+                  -webkit-backdrop-filter: saturate(1.6) blur(14px); backdrop-filter: saturate(1.6) blur(14px);
+                  border-bottom: 1px solid transparent; transition: border-color .2s, box-shadow .2s; }
+        .tabbar.stuck { border-bottom-color: var(--border); box-shadow: 0 6px 20px -14px rgba(18,20,30,.5); }
+        [data-theme="dark"] .tabbar { background: color-mix(in oklab, var(--bg) 62%, transparent); }
+        @supports not (backdrop-filter: blur(1px)) { .tabbar { background: var(--bg); } }
+
+        /* scroll-to-top */
+        .to-top { position: fixed; right: 18px; bottom: 22px; z-index: 60; width: 44px; height: 44px; border-radius: 50%;
+                  border: 1px solid var(--border); background: color-mix(in oklab, var(--surface) 82%, transparent);
+                  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--ink-2); cursor: pointer;
+                  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-card);
+                  opacity: 0; transform: translateY(12px) scale(.9); pointer-events: none;
+                  transition: opacity .22s ease, transform .22s cubic-bezier(.2,.8,.3,1), background .15s; }
+        .to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+        .to-top:hover { background: var(--surface); color: var(--ink); }
+        .to-top:active { transform: scale(.92); }
+
+        /* card entrance — a gentle staggered rise on tab change */
+        @media (prefers-reduced-motion: no-preference) {
+          .container > .card, .container > .banner-warn, .container > div > .stat-grid { animation: cardrise .4s cubic-bezier(.2,.8,.3,1) both; }
+          .container > *:nth-child(2) { animation-delay: .03s; }
+          .container > *:nth-child(3) { animation-delay: .06s; }
+          .container > *:nth-child(4) { animation-delay: .09s; }
+          .container > *:nth-child(5) { animation-delay: .12s; }
+          .card { transition: transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .18s; }
+          .card.shadow:hover { transform: translateY(-2px); }
+        }
+        @keyframes cardrise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+        /* ============ surfaces ============ */
+        .card { background: var(--surface); border-radius: 18px; border: 1px solid var(--border); }
+        .card.shadow { box-shadow: var(--shadow-card); }
+        .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+
+        .avatar { border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .pill { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 100px; flex-shrink: 0; }
+        .pill.soft { background: var(--surface-2); color: var(--ink-3); }
+
+        /* ============ hero (current turn) ============ */
+        .hero { position: relative; overflow: hidden; padding: 26px 28px 28px; }
+        .hero > :not(.hero-glow) { position: relative; }
+        .hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(110% 130% at 0% 0%, color-mix(in oklab, var(--pc, var(--accent)) 15%, transparent), transparent 55%); }
+        [data-theme="dark"] .hero-glow { background: radial-gradient(110% 130% at 0% 0%, color-mix(in oklab, var(--pc, var(--accent)) 22%, transparent), transparent 55%); }
+        .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+        .hero-main { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .hero-av { width: 60px; height: 60px; font-size: 22px; box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px color-mix(in oklab, var(--pc, var(--accent)) 55%, transparent); }
+        .hero-name { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 27px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+        .hero-sub { font-size: 14px; color: var(--ink-3); margin-top: 3px; }
+        .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+
+        /* ============ buttons ============ */
+        .btn { padding: 11px 18px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer; transition: background .15s, border-color .15s, box-shadow .15s, transform .06s; }
+        .btn:hover { background: var(--surface-2); }
+        .btn:active { transform: scale(.98); }
+        .btn.primary { border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--on-accent); font-weight: 700; box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 3px var(--ring); }
+        .btn.primary:hover { filter: brightness(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 8px var(--ring); }
+        .btn.primary:disabled { opacity: 0.5; cursor: default; transform: none; }
+        .btn.ghost { background: transparent; }
+        .btn.ghost:hover { background: var(--surface-2); }
+        .btn.lg { padding: 12px 20px; }
+        .btn.wa { border: none; background: var(--wa); color: white; font-weight: 700; }
+        .btn.wa:hover { background: var(--wa-hover); }
+        .btn.danger-outline { border: 1px solid var(--danger-border); color: var(--danger-ink); background: transparent; }
+        .btn.danger-outline:hover { background: var(--danger-soft); }
+        .btn.danger { border: none; background: var(--danger); color: white; font-weight: 700; }
+        .btn.danger:hover { background: var(--danger-hover); }
+        .btn.sm { padding: 6px 12px; border-radius: 9px; font-size: 13px; }
+        .btn.xs { padding: 5px 10px; border-radius: 8px; font-size: 12px; }
+
+        .task-chip { font-size: 13px; color: var(--ink-2); background: var(--surface-2); padding: 6px 12px; border-radius: 100px; }
+
+        .banner-warn { display: flex; align-items: flex-start; gap: 12px; background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 14px; padding: 16px 18px; }
+        .banner-setup { font-size: 13px; color: var(--ink-3); background: var(--accent-soft); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+
+        .strip { margin-top: 16px; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .strip.red { background: var(--danger-soft); border: 1px solid var(--danger-border); }
+        .strip.yellow { background: var(--warn-soft); border: 1px solid var(--warn-border); }
+
+        /* ============ modals ============ */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(8,9,14,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+        .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; width: 100%; max-width: 420px; box-shadow: var(--shadow-pop); max-height: 90vh; overflow: auto; animation: popin .18s cubic-bezier(.2,.8,.3,1); }
+        @keyframes popin { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+        .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .modal .desc { font-size: 14px; color: var(--ink-3); margin-bottom: 18px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        .cand { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); cursor: pointer; background: var(--surface); transition: background .15s, border-color .15s; }
+        .cand:hover { background: var(--surface-2); }
+        .cand .nm { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+
+        /* ============ forms ============ */
+        .input { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 14px; background: var(--input-bg); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+        .input::placeholder { color: var(--ink-4); }
+        .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+        label.fld { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); margin: 12px 0 5px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+        /* ============ stats / lists ============ */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+        .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+        .fair-note { margin-top: 14px; font-size: 13px; color: var(--warn-ink); background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 12px; padding: 10px 14px; }
+
+        .row { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
+        .row .date { width: 100px; font-size: 13px; font-weight: 600; color: var(--ink-2); flex-shrink: 0; }
+        .row .who { flex: 1; min-width: 100px; }
+        .row .who .nm { font-size: 14px; font-weight: 600; color: var(--ink); }
+        .row .who .note { font-size: 12px; color: var(--ink-3); }
+
+        .bar-track { flex: 1; height: 10px; background: var(--surface-2); border-radius: 100px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 100px; transition: width .4s cubic-bezier(.2,.8,.3,1); }
+
+        .audit-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink-2); padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+        .audit-row:last-child { border-bottom: none; }
+        .audit-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+        .audit-ts { color: var(--ink-4); flex-shrink: 0; white-space: nowrap; font-size: 12px; }
+
+        /* ============ kitchen ============ */
+        .saved-menu { display: flex; align-items: flex-start; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+        .saved-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success-ink); margin-top: 6px; flex-shrink: 0; }
+        .saved-dot.empty { background: var(--ink-4); }
+        .saved-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+        .saved-text { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-top: 2px; white-space: pre-wrap; }
+        .gro-row { display: flex; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
+        .gro-row:last-of-type { border-bottom: none; }
+        .due-chip { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 100px; flex-shrink: 0; }
+        .msg-preview { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: var(--ink-2); white-space: pre-wrap; line-height: 1.55; }
+
+        /* ============ login ============ */
+        .login-wrap { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { position: relative; width: 100%; max-width: 380px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-card); padding: 32px; }
+        .login-theme { position: absolute; top: 14px; right: 14px; z-index: 3; }
+
+        .period-opt { padding: 10px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); transition: background .15s, border-color .15s; }
+        .period-opt:hover { background: var(--surface-2); }
+        .period-opt.sel { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+
+        #toast-box { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+        .toast { background: var(--toast-bg); color: var(--toast-ink); font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 100px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); animation: toastin .2s ease; }
+        @keyframes toastin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .boot { padding: 60px 0; text-align: center; color: var(--ink-3); font-size: 14px; }
+        .spinner { width: 22px; height: 22px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============ login mascot ============ */
+        .mascot-clip { position: relative; height: 58px; overflow: hidden; margin-bottom: -6px; pointer-events: none; }
+        .mascot-svg { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%) translateY(0); transition: transform .3s cubic-bezier(.2,.8,.3,1); }
+        .mascot-svg .mk-head { transition: transform .16s ease-out; }
+        .mascot-svg .mk-eye-pupil { transition: transform .1s ease-out; }
+        /* Cover hands live over the eyes; hidden (slid down + transparent) until password time. */
+        .mascot-svg .mk-cover { opacity: 0; transform: translateY(26px); transition: transform .22s ease, opacity .18s ease; transform-box: fill-box; transform-origin: center; }
+        .mascot-svg.cover .mk-cover { opacity: 1; transform: translateY(0); }
+        /* Show password: the right hand swings aside a little — one eye peeks through the gap. */
+        .mascot-svg.cover.peek #mk-cover-r { transform: translate(7px, -4px) rotate(18deg); }
+        .wall-title { position: relative; z-index: 2; background: var(--surface); font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+
+        .pass-row { position: relative; display: flex; align-items: center; }
+        .pass-row .input { padding-right: 70px; }
+        .pass-toggle { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent-ink); padding: 4px 6px; border-radius: 8px; }
+        .pass-toggle:hover { background: var(--accent-soft); }
+
+        /* ============ photos ============ */
+        .photos-block { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-soft); }
+        .photos-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .photo-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+        .thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+        .thumb { position: relative; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+        .thumb .rm { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(20,20,25,0.65); color: white; font-size: 13px; line-height: 20px; text-align: center; cursor: pointer; padding: 0; }
+        .add-photo { width: 72px; height: 72px; border-radius: 12px; border: 1.5px dashed var(--border); background: var(--surface-2); color: var(--ink-3); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s; }
+        .add-photo:hover { border-color: var(--accent); color: var(--accent); }
+        .photo-empty { font-size: 13px; color: var(--ink-4); }
+
+        .lightbox { position: fixed; inset: 0; background: rgba(8,9,14,0.92); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; cursor: zoom-out; }
+        .lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+
+        /* ============ mobile ============ */
+        @media (max-width: 680px) {
+          .wrap { padding: 16px 10px 70px; }
+          .header { flex-direction: column; align-items: stretch; }
+          .controls { justify-content: space-between; width: 100%; }
+          .tabs { width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+          .tabs::-webkit-scrollbar { display: none; }
+          .tab { flex: 1 0 auto; text-align: center; padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+          .tabbar { justify-content: stretch; margin: -4px -10px 0; padding: 8px 10px; }
+          .to-top { right: 14px; bottom: 16px; }
+          .brand { font-size: 20px; }
+          .hero { padding: 22px 18px 24px; }
+          .hero-name { font-size: 23px; }
+          .hero-actions { width: 100%; }
+          .hero-actions .btn { flex: 1 1 45%; padding: 12px 8px; }
+          .row { padding: 14px 14px; gap: 10px; }
+          .row .date { width: 84px; font-size: 12px; }
+          .gro-row { padding: 12px 14px; gap: 8px; }
+          .menu-grid { grid-template-columns: 1fr; }
+          .photos-cols { grid-template-columns: 1fr; }
+        }
+    
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="container" id="app">
+        <div class="boot"><div class="spinner"></div>Loading…</div>
+    </div>
+</div>
+<div id="toast-box"></div>
+<button class="to-top" id="to-top" type="button" aria-label="Scroll to top" title="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>
+</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    'use strict';
+
+    /* ============================================================
+       CONFIG — paste your Supabase project values here (README.md)
+       ============================================================ */
+    const SUPABASE_URL = 'https://vzapxytiwsmxwswddyqp.supabase.co';           // e.g. https://abcdefgh.supabase.co
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YXB4eXRpd3NteHdzd2RkeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2Njg4NTksImV4cCI6MjA5OTI0NDg1OX0._Q9R61KnkErPSXyUMwTMhgLCQdae7O_HT79NmSA8TM4';  // the long "anon public" key
+    
+    const ROTATION_START = '2026-07-11';
+    const DEFAULT_TASKS = '🗑️ Empty bins, 🚮 Take out garbage, 🧹 Sweep hall, 🧽 Mop hall, 🪣 Clean entrance';
+    const DEFAULT_FLATMATES = [
+      { id: 1, name: 'Ayan',         color: 'oklch(0.6 0.15 250)',  sort: 1, in_kitchen: true },
+      { id: 2, name: 'Zakariya',     color: 'oklch(0.65 0.16 150)', sort: 2, in_kitchen: false }, // eats outside
+      { id: 3, name: 'Abdul Haseeb', color: 'oklch(0.65 0.18 40)',  sort: 3, in_kitchen: true },
+      { id: 4, name: 'Ikram',        color: 'oklch(0.6 0.17 300)',  sort: 4, in_kitchen: true },
+      { id: 5, name: 'Abdul Malik',  color: 'oklch(0.62 0.15 20)',  sort: 5, in_kitchen: true },
+      { id: 6, name: 'Zeeshan',      color: 'oklch(0.6 0.14 190)',  sort: 6, in_kitchen: true },
+    ];
+    const DEFAULT_USERS = [ // demo-mode logins; real logins live in the database
+      { id: 1, username: 'admin',    flatmate_id: null, is_admin: true },
+      { id: 2, username: 'ayan',     flatmate_id: 1, is_admin: false },
+      { id: 3, username: 'zakariya', flatmate_id: 2, is_admin: false },
+      { id: 4, username: 'haseeb',   flatmate_id: 3, is_admin: false },
+      { id: 5, username: 'ikram',    flatmate_id: 4, is_admin: false },
+      { id: 6, username: 'malik',    flatmate_id: 5, is_admin: false },
+      { id: 7, username: 'zeeshan',  flatmate_id: 6, is_admin: false },
+    ];
+    const CONFIGURED = !SUPABASE_URL.startsWith('YOUR_') && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+
+    /* ================= helpers ================= */
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function initials(name) { return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase(); }
+    function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+    // Days until the next given weekday (0=Sun..6=Sat), counting `from` itself as 0 if it matches.
+    function daysUntilWeekday(from, weekday) { return ((weekday - from.getDay()) % 7 + 7) % 7; }
+    const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    function isoDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function fmtDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    function fmtSpan(start, end) {
+      const m1 = start.toLocaleDateString('en-GB', { month: 'short' });
+      const m2 = end.toLocaleDateString('en-GB', { month: 'short' });
+      if (start.getTime() === end.getTime() || isoDate(start) === isoDate(end)) return start.getDate() + ' ' + m1;
+      return m1 === m2 ? `${start.getDate()}–${end.getDate()} ${m1}` : `${start.getDate()} ${m1}–${end.getDate()} ${m2}`;
+    }
+    async function hashPassword(username, password) {
+      const data = new TextEncoder().encode(username.toLowerCase().trim() + ':' + password);
+      const buf = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    /* ================= theme (light / dark) ================= */
+    const THEME_KEY = 'f6_theme';
+    const GLASS_KEY = 'f6_glass';
+    function glassOn() { return document.documentElement.dataset.glass === 'on'; }
+    function applyGlass(on, persist) {
+      document.documentElement.dataset.glass = on ? 'on' : 'off';
+      if (persist) { try { localStorage.setItem(GLASS_KEY, on ? 'on' : 'off'); } catch (e) {} }
+    }
+    function glassIcon() {
+      // a little faceted-diamond / prism glyph
+      return glassOn()
+        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 4 8v8l8 5.5L20 16V8z"/><path d="M4 8l8 4 8-4M12 12v9.5"/></svg>'
+        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 4 8v8l8 5.5L20 16V8z"/></svg>';
+    }
+    function currentTheme() { return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'; }
+    function applyTheme(t, persist) {
+      document.documentElement.dataset.theme = t;
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', t === 'dark' ? '#0d0e12' : '#f5f6f8');
+      if (persist) { try { localStorage.setItem(THEME_KEY, t); } catch (e) {} }
+    }
+    function themeIcon() {
+      return currentTheme() === 'dark'
+        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+    }
+    if (window.matchMedia) {
+      try {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+          if (!localStorage.getItem(THEME_KEY)) { applyTheme(e.matches ? 'dark' : 'light'); if (state.ready) render(); }
+        });
+      } catch (e) { /* older browsers */ }
+    }
+
+    /* ================= photo helpers ================= */
+    // Compress an image file to a small JPEG data URL so it fits comfortably in the DB.
+    const PHOTO_MAX_DIM = 1000;      // longest edge in px
+    const PHOTO_QUALITY = 0.72;      // JPEG quality
+    const PHOTO_MAX_PER_SIDE = 6;    // max photos in before/after each
+    function fileToCompressedDataURL(file) {
+      return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) return reject(new Error('Not an image'));
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width: w, height: h } = img;
+          const scale = Math.min(1, PHOTO_MAX_DIM / Math.max(w, h));
+          w = Math.round(w * scale); h = Math.round(h * scale);
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', PHOTO_QUALITY));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+        img.src = url;
+      });
+    }
+    function turnPhotos(t) { const p = t && t.photos; return { before: (p && p.before) || [], after: (p && p.after) || [] }; }
+    function hasPhotos(t) { const p = turnPhotos(t); return p.before.length + p.after.length > 0; }
+
+    /* ================= data stores ================= */
+    class LocalStore {
+      constructor() { this.key = 'flat6_demo_v2'; }
+      _load() {
+        let d = null;
+        try { d = JSON.parse(localStorage.getItem(this.key)); } catch (e) {}
+        if (!d) d = { turns: [], makeup: [], audit: [], users: null, settings: { period_days: '7', app_name: 'Ghar', app_url: '', tasks: DEFAULT_TASKS, start_date: ROTATION_START } };
+        if (!d.gturns) d.gturns = [];    // grocery rotation (kitchen)
+        if (!d.kitchen) d.kitchen = []; // grocery items (kitchen)
+        if (!d.fm_overrides) d.fm_overrides = {}; // per-flatmate patches (e.g. in_kitchen)
+        return d;
+      }
+      _save(d) { localStorage.setItem(this.key, JSON.stringify(d)); }
+      async init() {
+        const d = this._load();
+        if (!d.users) {
+          d.users = [];
+          for (const u of DEFAULT_USERS) d.users.push({ ...u, pass_hash: await hashPassword(u.username, '1234') });
+        }
+        this._save(d);
+      }
+      async fetchAll() {
+        const d = this._load();
+        const flatmates = DEFAULT_FLATMATES.map(f => ({ ...f, ...(d.fm_overrides[f.id] || {}) }));
+        return { flatmates, turns: d.turns, makeup: d.makeup, users: d.users, settings: d.settings, gturns: d.gturns, kitchen: d.kitchen, kitchenReady: true, kitchenFlagMissing: false };
+      }
+      async updateFlatmate(id, patch) { const d = this._load(); d.fm_overrides[id] = { ...(d.fm_overrides[id] || {}), ...patch }; this._save(d); }
+      async fetchAudit() { return this._load().audit.slice(0, 30); }
+      async insertTurns(rows) {
+        const d = this._load();
+        let nextId = d.turns.reduce((m, t) => Math.max(m, t.id), 0) + 1;
+        const have = new Set(d.turns.map(t => t.start_date));
+        rows.forEach(r => { if (!have.has(r.start_date)) d.turns.push({ id: nextId++, completed_at: null, swap: null, ...r }); });
+        d.turns.sort((a, b) => a.start_date < b.start_date ? -1 : 1);
+        this._save(d);
+      }
+      async deleteFutureTurns(afterIso) { const d = this._load(); d.turns = d.turns.filter(t => t.start_date <= afterIso); this._save(d); }
+      async updateTurn(id, patch) { const d = this._load(); const i = d.turns.findIndex(t => t.id === id); if (i >= 0) d.turns[i] = { ...d.turns[i], ...patch }; this._save(d); }
+      async insertMakeup(row) { const d = this._load(); d.makeup.push({ id: 'mk-' + Date.now(), created_at: new Date().toISOString(), resolved: false, resolved_label: null, ...row }); this._save(d); }
+      async updateMakeup(id, patch) { const d = this._load(); const i = d.makeup.findIndex(m => String(m.id) === String(id)); if (i >= 0) d.makeup[i] = { ...d.makeup[i], ...patch }; this._save(d); }
+      async insertAudit(action) { const d = this._load(); d.audit.unshift({ id: 'log-' + Date.now(), ts: new Date().toISOString(), action }); d.audit = d.audit.slice(0, 30); this._save(d); }
+      async updateSetting(key, value) { const d = this._load(); d.settings[key] = value; this._save(d); }
+      async deleteSetting(key) { const d = this._load(); delete d.settings[key]; this._save(d); }
+      /* ---- kitchen ---- */
+      async insertGroceryTurns(rows) {
+        const d = this._load();
+        let nextId = d.gturns.reduce((m, t) => Math.max(m, t.id), 0) + 1;
+        const have = new Set(d.gturns.map(t => t.start_date));
+        rows.forEach(r => { if (!have.has(r.start_date)) d.gturns.push({ id: nextId++, completed_at: null, swap: null, ...r }); });
+        d.gturns.sort((a, b) => a.start_date < b.start_date ? -1 : 1);
+        this._save(d);
+      }
+      async updateGroceryTurn(id, patch) { const d = this._load(); const i = d.gturns.findIndex(t => t.id === id); if (i >= 0) d.gturns[i] = { ...d.gturns[i], ...patch }; this._save(d); }
+      async deleteFutureGroceryTurns(afterIso) { const d = this._load(); d.gturns = d.gturns.filter(t => t.start_date <= afterIso); this._save(d); }
+      async insertKitchenItem(row) { const d = this._load(); const id = d.kitchen.reduce((m, i) => Math.max(m, i.id || 0), 0) + 1; d.kitchen.push({ id, created_at: new Date().toISOString(), bought_at: null, ...row }); this._save(d); }
+      async updateKitchenItem(id, patch) { const d = this._load(); const i = d.kitchen.findIndex(x => x.id === Number(id)); if (i >= 0) d.kitchen[i] = { ...d.kitchen[i], ...patch }; this._save(d); }
+      async deleteKitchenItem(id) { const d = this._load(); d.kitchen = d.kitchen.filter(x => x.id !== Number(id)); this._save(d); }
+      async insertUser(row) { const d = this._load(); if (d.users.some(u => u.username === row.username)) throw new Error('Username already exists'); row.id = d.users.reduce((m, u) => Math.max(m, u.id), 0) + 1; d.users.push(row); this._save(d); }
+      async updateUser(id, patch) { const d = this._load(); const i = d.users.findIndex(u => u.id === id); if (i >= 0) d.users[i] = { ...d.users[i], ...patch }; this._save(d); }
+      async deleteUser(id) { const d = this._load(); d.users = d.users.filter(u => u.id !== id); this._save(d); }
+      /* same auth interface as the secure remote store (demo mode = on-device only) */
+      _pub(u) { return { id: u.id, username: u.username, flatmate_id: u.flatmate_id, is_admin: u.is_admin, must_change: false }; }
+      async login(username, password) {
+        const d = this._load();
+        const u = d.users.find(x => x.username.toLowerCase() === username.toLowerCase());
+        if (!u) throw new Error('Wrong username or password');
+        const h = await hashPassword(u.username, password);
+        if (h !== u.pass_hash) throw new Error('Wrong username or password');
+        return { token: 'local-' + u.id, user: this._pub(u) };
+      }
+      async me(token) { const id = Number(String(token).replace('local-', '')); const u = this._load().users.find(x => x.id === id); return u ? this._pub(u) : null; }
+      async logoutSession() {}
+      async changePassword(token, oldPw, newPw) {
+        const id = Number(String(token).replace('local-', ''));
+        const d = this._load(); const u = d.users.find(x => x.id === id);
+        if (!u) throw new Error('Session expired');
+        if (await hashPassword(u.username, oldPw) !== u.pass_hash) throw new Error('Current password is wrong');
+        if (!newPw || newPw.length < 8) throw new Error('Password must be at least 8 characters');
+        u.pass_hash = await hashPassword(u.username, newPw); this._save(d);
+      }
+      async listUsers() { return this._load().users.map(u => this._pub(u)); }
+      async adminCreateUser(token, username, password, flatmateId, isAdmin) {
+        if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
+        await this.insertUser({ username, pass_hash: await hashPassword(username, password), flatmate_id: flatmateId, is_admin: isAdmin });
+      }
+      async adminResetPassword(token, userId, password) {
+        if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
+        const u = this._load().users.find(x => x.id === userId); if (!u) throw new Error('User not found');
+        await this.updateUser(userId, { pass_hash: await hashPassword(u.username, password) });
+      }
+      async adminSetAdmin(token, userId, isAdmin) { await this.updateUser(userId, { is_admin: isAdmin }); }
+      async adminDeleteUser(token, userId) { await this.deleteUser(userId); }
+      onChange(cb) { window.addEventListener('storage', e => { if (e.key === this.key) cb(); }); }
+    }
+
+    class SupaStore {
+      constructor() { this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+      async init() {}
+      async fetchAll() {
+        const [f, t, m, s] = await Promise.all([
+          this.client.from('flatmates').select('*').order('sort'),
+          this.client.from('turns').select('*').order('start_date'),
+          this.client.from('makeup_queue').select('*').order('created_at'),
+          this.client.from('settings').select('*'),
+        ]);
+        const firstErr = [f, t, m, s].find(r => r.error);
+        if (firstErr) throw firstErr.error;
+        // kitchen tables — fetched separately so a missing upgrade doesn't break the whole app
+        const [g, k] = await Promise.all([
+          this.client.from('grocery_turns').select('*').order('start_date'),
+          this.client.from('kitchen_items').select('*').order('created_at'),
+        ]);
+        const kitchenReady = !g.error && !k.error; // false until ghar_setup_v3.7.sql has been run
+        const settings = {};
+        (s.data || []).forEach(r => { settings[r.key] = r.value; });
+        // No silent fallback to DEFAULT_FLATMATES here: substituting hardcoded people for the
+        // database made the app look healthy while ignoring the DB entirely (admin edits would
+        // "work", then revert on reload). An empty table is a real setup problem — say so.
+        const flatmates = f.data || [];
+        // in_kitchen missing from every row means the migration hasn't reached the API yet
+        // (Postgres has the column, PostgREST is still serving a cached schema).
+        const kitchenFlagMissing = flatmates.length > 0 && flatmates.every(x => x.in_kitchen === undefined);
+        return { flatmates, turns: t.data, makeup: m.data, users: null, settings, gturns: g.data || [], kitchen: k.data || [], kitchenReady, kitchenFlagMissing };
+      }
+      // Fetched lazily, only when an admin opens the Admin tab — keeps reads off the free tier.
+      async fetchAudit() {
+        const { data, error } = await this.client.from('audit_log').select('*').order('ts', { ascending: false }).limit(30);
+        if (error) throw error;
+        return data || [];
+      }
+      async insertTurns(rows) { const { error } = await this.client.from('turns').upsert(rows, { onConflict: 'start_date', ignoreDuplicates: true }); if (error) throw error; }
+      async deleteFutureTurns(afterIso) { const { error } = await this.client.from('turns').delete().gt('start_date', afterIso); if (error) throw error; }
+      async updateTurn(id, patch) { const { error } = await this.client.from('turns').update(patch).eq('id', id); if (error) throw error; }
+      async insertMakeup(row) { const { error } = await this.client.from('makeup_queue').insert(row); if (error) throw error; }
+      async updateMakeup(id, patch) { const { error } = await this.client.from('makeup_queue').update(patch).eq('id', id); if (error) throw error; }
+      async insertAudit(action) { const { error } = await this.client.from('audit_log').insert({ action }); if (error) throw error; }
+      async updateSetting(key, value) { const { error } = await this.client.from('settings').upsert({ key, value }); if (error) throw error; }
+      async deleteSetting(key) { const { error } = await this.client.from('settings').delete().eq('key', key); if (error) throw error; }
+      async updateFlatmate(id, patch) { const { error } = await this.client.from('flatmates').update(patch).eq('id', id); if (error) throw error; }
+      /* ---- kitchen ---- */
+      async insertGroceryTurns(rows) { const { error } = await this.client.from('grocery_turns').upsert(rows, { onConflict: 'start_date', ignoreDuplicates: true }); if (error) throw error; }
+      async updateGroceryTurn(id, patch) { const { error } = await this.client.from('grocery_turns').update(patch).eq('id', id); if (error) throw error; }
+      async deleteFutureGroceryTurns(afterIso) { const { error } = await this.client.from('grocery_turns').delete().gt('start_date', afterIso); if (error) throw error; }
+      async insertKitchenItem(row) { const { error } = await this.client.from('kitchen_items').insert(row); if (error) throw error; }
+      async updateKitchenItem(id, patch) { const { error } = await this.client.from('kitchen_items').update(patch).eq('id', id); if (error) throw error; }
+      async deleteKitchenItem(id) { const { error } = await this.client.from('kitchen_items').delete().eq('id', id); if (error) throw error; }
+      /* ---- secure auth: all password/user operations happen server-side via RPC ---- */
+      async login(username, password) {
+        const { data, error } = await this.client.rpc('auth_login', { p_username: username, p_password: password });
+        if (error) throw error;
+        if (data && data.error) throw new Error(data.error);
+        return data; // { token, user }
+      }
+      async me(token) { const { data, error } = await this.client.rpc('auth_me', { p_token: token }); if (error) throw error; return data; }
+      async logoutSession(token) { try { await this.client.rpc('auth_logout', { p_token: token }); } catch (e) { /* non-fatal */ } }
+      async changePassword(token, oldPw, newPw) { const { error } = await this.client.rpc('auth_change_password', { p_token: token, p_old: oldPw, p_new: newPw }); if (error) throw error; }
+      async listUsers(token) { const { data, error } = await this.client.rpc('admin_list_users', { p_token: token }); if (error) throw error; return data || []; }
+      async adminCreateUser(token, username, password, flatmateId, isAdmin) { const { error } = await this.client.rpc('admin_create_user', { p_token: token, p_username: username, p_password: password, p_flatmate_id: flatmateId, p_is_admin: isAdmin }); if (error) throw error; }
+      async adminResetPassword(token, userId, password) { const { error } = await this.client.rpc('admin_reset_password', { p_token: token, p_user_id: userId, p_password: password }); if (error) throw error; }
+      async adminSetAdmin(token, userId, isAdmin) { const { error } = await this.client.rpc('admin_set_admin', { p_token: token, p_user_id: userId, p_is_admin: isAdmin }); if (error) throw error; }
+      async adminDeleteUser(token, userId) { const { error } = await this.client.rpc('admin_delete_user', { p_token: token, p_user_id: userId }); if (error) throw error; }
+      onChange(cb) {
+        this.client.channel('db-changes')
+          .on('postgres_changes', { event: '*', schema: 'public' }, () => cb())
+          .subscribe();
+        setInterval(cb, 60000);
+      }
+    }
+
+    /* ================= state ================= */
+    const state = {
+      ready: false, errorMsg: null,
+      tab: 'dashboard',
+      flatmates: DEFAULT_FLATMATES, turns: [], makeup: [], audit: [], auditLoaded: false, auditError: null, users: [], settings: {},
+      gturns: [], kitchen: [], kitchenReady: true, kitchenFlagMissing: false, gSkipConfirmOpen: false, // kitchen
+      user: null, // logged-in user (public fields only — never any hash)
+      session: null, // auth token; admin actions are verified server-side against it
+      swapModalOpen: false, swapTargetId: null,
+      skipConfirmOpen: false, undoConfirmId: null, editTurnId: null,
+      periodConfirm: null, // pending new period days awaiting confirm
+      startDayConfirm: null, // pending new start weekday (0-6) awaiting confirm
+      lightbox: null, // data URL of photo being viewed full-screen
+      changePassOpen: false, // voluntary change-password modal
+    };
+    let store = null;
+
+    function appName() { return state.settings.app_name || 'Ghar'; }
+    function periodDays() { const n = parseInt(state.settings.period_days); return (n >= 1 && n <= 60) ? n : 7; }
+    function periodLabel() { const n = periodDays(); return n === 7 ? 'weekly' : n === 1 ? 'daily' : 'every ' + n + ' days'; }
+    function taskList() { return (state.settings.tasks || DEFAULT_TASKS).split(',').map(s => s.trim()).filter(Boolean); }
+    function isAdmin() { return !!(state.user && state.user.is_admin); }
+    function myFlatmateId() { return state.user ? state.user.flatmate_id : null; }
+
+    function applyData(d) {
+      state.flatmates = d.flatmates;
+      state.turns = d.turns.map(t => {
+        const start = new Date(t.start_date + 'T00:00:00');
+        const end = new Date(t.end_date + 'T00:00:00'); end.setHours(23, 59, 59, 999);
+        return { ...t, start, end, rangeLabel: fmtSpan(start, new Date(t.end_date + 'T00:00:00')) };
+      }).sort((a, b) => a.start_date < b.start_date ? -1 : 1);
+      state.makeup = d.makeup;
+      state.gturns = (d.gturns || []).map(t => {
+        const start = new Date(t.start_date + 'T00:00:00');
+        const end = new Date(t.end_date + 'T00:00:00'); end.setHours(23, 59, 59, 999);
+        return { ...t, start, end, rangeLabel: fmtSpan(start, new Date(t.end_date + 'T00:00:00')) };
+      }).sort((a, b) => a.start_date < b.start_date ? -1 : 1);
+      state.kitchen = (d.kitchen || []).slice().sort((a, b) => (a.created_at || '') < (b.created_at || '') ? -1 : 1);
+      state.kitchenReady = d.kitchenReady !== false;
+      state.kitchenFlagMissing = !!d.kitchenFlagMissing;
+      if (d.users) state.users = d.users; // null when the store no longer exposes users directly
+      state.settings = d.settings;
+    }
+
+    /* generate upcoming turns so the schedule always extends ~8 periods ahead */
+    async function ensureTurnsCover() {
+      const pd = periodDays(), fm = state.flatmates;
+      if (!fm.length) return false;
+      const horizon = addDays(new Date(), pd * 8);
+      const last = state.turns[state.turns.length - 1];
+      let cursor, rot;
+      if (!last) {
+        cursor = new Date((state.settings.start_date || ROTATION_START) + 'T00:00:00');
+        rot = 0;
+      } else {
+        cursor = addDays(new Date(last.end_date + 'T00:00:00'), 1);
+        rot = ((last.rot_index || 0) + 1) % fm.length;
+      }
+      const rows = [];
+      while (cursor <= horizon && rows.length < 400) {
+        rows.push({ start_date: isoDate(cursor), end_date: isoDate(addDays(cursor, pd - 1)), assignee_id: fm[rot].id, rot_index: rot });
+        cursor = addDays(cursor, pd);
+        rot = (rot + 1) % fm.length;
+      }
+      if (!rows.length) return false;
+      await store.insertTurns(rows);
+      return true;
+    }
+
+    /* Grocery rotation runs over KITCHEN MEMBERS ONLY (someone who eats outside must
+       never land on grocery duty). It reuses the cleaning turns' dates, so both rotations
+       share week boundaries and survive period / week-start changes together — but it keeps
+       its own cycle position, because the kitchen roster is smaller than the cleaning
+       roster and the two cycles are different lengths by design. */
+    async function ensureGroceryCover() {
+      if (!state.kitchenReady) return false;
+      const km = kitchenMates();
+      if (!km.length || !state.turns.length) return false;
+      const today = todayIso();
+
+      // Self-heal: a stored week may name someone who has since left the kitchen (or who was
+      // never a member, e.g. rows generated before in_kitchen existed). ensureGroceryCover only
+      // ever CREATED missing weeks, so such rows survived forever and kept showing an excluded
+      // person as grocery owner. Reassign any current/future week whose assignee isn't a member.
+      let healed = false;
+      for (const gt of state.gturns) {
+        if (gt.end_date < today) continue;                      // history stays as it happened
+        const assignee = activeAssigneeId(gt);
+        if (isKitchenMate(assignee)) continue;
+        const pos = state.gturns.filter(x => x.end_date >= today).indexOf(gt);
+        const replacement = km[((gt.rot_index || 0) + pos) % km.length];
+        await store.updateGroceryTurn(gt.id, { assignee_id: replacement.id, rot_index: km.indexOf(replacement), swap: null });
+        healed = true;
+      }
+      if (healed) return true; // refetch, then this pass runs again over clean rows
+
+      const have = new Set(state.gturns.map(t => t.start_date));
+      // Continue the cycle from the last existing grocery week. If its assignee has since
+      // left the kitchen, fall back to that week's recorded position in the current roster.
+      const last = state.gturns[state.gturns.length - 1];
+      let rot = 0;
+      if (last) {
+        const i = km.findIndex(f => f.id === last.assignee_id);
+        rot = ((i >= 0 ? i : (last.rot_index || 0)) + 1) % km.length;
+      }
+      const rows = [];
+      for (const t of state.turns) {
+        if (t.end_date < today || have.has(t.start_date)) continue;
+        rows.push({ start_date: t.start_date, end_date: t.end_date, assignee_id: km[rot].id, rot_index: rot });
+        rot = (rot + 1) % km.length;
+      }
+      if (!rows.length) return false;
+      await store.insertGroceryTurns(rows);
+      return true;
+    }
+
+    async function refresh() {
+      try {
+        applyData(await store.fetchAll());
+        await migrateAppName();
+        if (await ensureTurnsCover()) applyData(await store.fetchAll());
+        if (await ensureGroceryCover()) applyData(await store.fetchAll());
+        if (await healOrphanItems()) applyData(await store.fetchAll());
+        await cleanupOldPhotos();
+        await cleanupOldMenus();
+        state.errorMsg = null;
+      } catch (e) { state.errorMsg = 'Could not load data: ' + (e.message || e); }
+      if (isAdmin() && state.tab === 'admin') await refreshAudit();
+      render();
+    }
+
+    async function refreshAudit() {
+      if (!isAdmin()) return;
+      try { state.audit = await store.fetchAudit(); state.auditLoaded = true; state.auditError = null; }
+      catch (e) { state.auditLoaded = true; state.auditError = 'Could not load the log: ' + (e.message || e); }
+    }
+
+    // Free-storage rule: keep photos only for the current turn and the one right before it.
+    // Anything older gets wiped the moment the next turn starts — no paid cron needed.
+    let _cleanupRunning = false;
+    async function cleanupOldPhotos() {
+      if (_cleanupRunning) return;
+      const curIdx = currentTurnIndex();
+      if (curIdx < 0) return;
+      const keepFrom = state.turns[Math.max(0, curIdx - 1)];
+      if (!keepFrom) return;
+      const stale = state.turns.filter(t => t.start < keepFrom.start && hasPhotos(t));
+      if (!stale.length) return;
+      _cleanupRunning = true;
+      try {
+        for (const t of stale) await store.updateTurn(t.id, { photos: null });
+        applyData(await store.fetchAll());
+      } catch (e) { /* non-fatal */ }
+      finally { _cleanupRunning = false; }
+    }
+
+    // One-time rename: installs that stored the old default name migrate to Ghar.
+    // Custom names (e.g. "Azizbagh Cleaners") are left exactly as the admin set them.
+    let _renameDone = false;
+    async function migrateAppName() {
+      if (_renameDone) return;
+      _renameDone = true;
+      if (state.settings.app_name === 'Flat 6 Cleaners') {
+        try {
+          await store.updateSetting('app_name', 'Ghar');
+          state.settings.app_name = 'Ghar';
+        } catch (e) { /* non-fatal */ }
+      }
+    }
+
+    // Self-heal: grocery items still owned by someone who left the kitchen move to the
+    // current duty owner, so no item is ever the responsibility of a non-member.
+    let _itemHealRunning = false;
+    async function healOrphanItems() {
+      if (_itemHealRunning || !state.kitchenReady) return false;
+      const orphans = state.kitchen.filter(i => i.status === 'needed' && !isKitchenMate(i.owner_id));
+      if (!orphans.length) return false;
+      const oid = groceryOwnerId();
+      if (!oid) return false;
+      _itemHealRunning = true;
+      try {
+        for (const i of orphans) await store.updateKitchenItem(i.id, { owner_id: oid, helped: false });
+        return true;
+      } catch (e) { return false; }
+      finally { _itemHealRunning = false; }
+    }
+
+    // Menus & chapati counts older than 7 days are deleted from settings so the table stays tiny.
+    let _menuCleanupDone = false;
+    async function cleanupOldMenus() {
+      if (_menuCleanupDone || !state.user) return;
+      _menuCleanupDone = true;
+      const cutoffIso = isoDate(addDays(new Date(), -7));
+      const stale = Object.keys(state.settings).filter(k =>
+        (k.startsWith('menu_') && k < 'menu_' + cutoffIso) ||
+        (k.startsWith('chapati_') && k !== 'chapati_defaults' && k < 'chapati_' + cutoffIso));
+      for (const k of stale) { try { await store.deleteSetting(k); } catch (e) { /* non-fatal */ } }
+    }
+
+    /* ================= domain logic ================= */
+    function findFlatmate(id) { return state.flatmates.find(f => f.id === Number(id)) || { id: 0, name: '?', color: 'oklch(0.7 0.01 250)' }; }
+    function activeAssigneeId(t) { return (t.swap && t.swap.status === 'accepted') ? t.swap.toId : t.assignee_id; }
+    function turnAssignee(t) { return findFlatmate(activeAssigneeId(t)); }
+    function nextFlatmateAfter(id) { const i = state.flatmates.findIndex(f => f.id === Number(id)); return state.flatmates[(i + 1) % state.flatmates.length]; }
+    function turnStatus(t) { if (t.completed_at) return 'completed'; if (new Date() > t.end) return 'overdue'; return 'pending'; }
+    function statusMeta(s) {
+      if (s === 'completed') return { label: 'Completed', bg: 'var(--success-soft)', color: 'var(--success-ink)' };
+      if (s === 'overdue') return { label: 'Overdue', bg: 'var(--danger-soft)', color: 'var(--danger-ink)' };
+      return { label: 'Pending', bg: 'var(--warn-soft)', color: 'var(--warn-ink)' };
+    }
+    function turnSwapNote(t) {
+      if (!t.swap) return null;
+      const from = findFlatmate(t.swap.fromId).name, to = findFlatmate(t.swap.toId).name;
+      if (t.swap.type === 'skip') return from + ' was away — covered by ' + to;
+      if (t.swap.type === 'makeup') return to + ' took over as makeup (was ' + from + ')';
+      if (t.swap.status === 'accepted') return 'Swapped: ' + from + ' → ' + to;
+      return from + ' requested a swap with ' + to + ' — awaiting acceptance';
+    }
+    function currentTurnIndex() {
+      const now = new Date(), turns = state.turns;
+      for (let i = 0; i < turns.length; i++) {
+        if (now >= turns[i].start && now <= turns[i].end) return i;
+        if (now < turns[i].start) {
+          const prev = i - 1;
+          return (prev >= 0 && !turns[prev].completed_at) ? prev : i;
+        }
+      }
+      return turns.length - 1;
+    }
+    function canManageTurn(t) { return isAdmin() || myFlatmateId() === activeAssigneeId(t); }
+    function meName() { return state.user ? (state.user.flatmate_id ? findFlatmate(state.user.flatmate_id).name : state.user.username) : 'Someone'; }
+    // Audit attribution: if the actor is doing it for themselves, use their name;
+    // if an admin (or anyone else) acts on another flatmate's behalf, make that explicit.
+    function byLine(subjectId) {
+      const subj = findFlatmate(subjectId);
+      return myFlatmateId() === subjectId ? subj.name : meName() + ' (for ' + subj.name + ')';
+    }
+    function fmtDateTime(d) {
+      const x = new Date(d);
+      return x.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + x.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    function auditDot(a) {
+      const s = String(a).toLowerCase();
+      if (s.includes('undid') || s.includes('deleted') || s.includes('declined') || s.includes('removed')) return 'var(--danger)';
+      if (s.includes('cleaned')) return 'var(--success-ink)';
+      if (s.includes('away') || s.includes('makeup')) return 'var(--warn-ink)';
+      if (s.includes('swap')) return 'var(--accent)';
+      if (s.includes('password') || s.includes('user') || s.includes('admin')) return 'var(--accent-ink)';
+      return 'var(--ink-4)';
+    }
+    function daysLeft(t) { return Math.max(0, Math.ceil((t.end - new Date()) / 864e5)); }
+
+    /* ================= kitchen domain ================= */
+    // Kitchen membership: admin-managed flag on flatmates. Missing/undefined counts as
+    // IN (so an un-migrated DB keeps working); only an explicit false excludes someone.
+    function kitchenMates() { return state.flatmates.filter(f => f.in_kitchen !== false); }
+    function isKitchenMate(fmId) { const f = state.flatmates.find(x => x.id === Number(fmId)); return !!f && f.in_kitchen !== false; }
+    function canSeeKitchen() { return isAdmin() || isKitchenMate(myFlatmateId()); }
+    function nextKitchenMateAfter(id) {
+      const km = kitchenMates();
+      if (!km.length) return null;
+      const i = km.findIndex(f => f.id === Number(id));
+      return km[(i + 1) % km.length]; // if id isn't a kitchen mate, i=-1 → km[0]
+    }
+    function todayIso() { return isoDate(new Date()); }
+    function tomorrowIso() { return isoDate(addDays(new Date(), 1)); }
+    function menuTextFor(iso) {
+      const raw = state.settings['menu_' + iso];
+      if (!raw) return '';
+      try {
+        const m = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (typeof m.text === 'string') return m.text;
+        return [m.lunch, m.dinner].filter(Boolean).join('\n'); // old lunch/dinner format
+      } catch (e) { return ''; }
+    }
+    /* chapati counts: per-person, per-day — stored compactly as one settings key per day
+       (chapati_YYYY-MM-DD = {"<flatmateId>": n}) plus a chapati_defaults map for people
+       who eat the same number daily. Only your own count + the flat total are shown. */
+    function chapatiDefaults() { try { return JSON.parse(state.settings.chapati_defaults || '{}') || {}; } catch (e) { return {}; } }
+    function chapatiMapFor(iso) { try { return JSON.parse(state.settings['chapati_' + iso] || '{}') || {}; } catch (e) { return {}; } }
+    function chapatiCountFor(iso, fmId) {
+      const map = chapatiMapFor(iso), d = chapatiDefaults();
+      if (map[fmId] != null) return { n: Number(map[fmId]), from: 'set' };
+      if (d[fmId] != null) return { n: Number(d[fmId]), from: 'default' };
+      return { n: 0, from: 'unset' };
+    }
+    function chapatiTotal(iso) {
+      let total = 0, setCount = 0;
+      kitchenMates().forEach(f => { const c = chapatiCountFor(iso, f.id); if (c.from !== 'unset') { total += c.n; setCount++; } });
+      return { total, setCount };
+    }
+    function currentGroceryTurn() {
+      const now = new Date(), turns = state.gturns;
+      for (let i = 0; i < turns.length; i++) {
+        if (now >= turns[i].start && now <= turns[i].end) return turns[i];
+        if (now < turns[i].start) return turns[i];
+      }
+      return turns[turns.length - 1] || null;
+    }
+    function groceryOwnerId() { const t = currentGroceryTurn(); return t ? activeAssigneeId(t) : null; }
+    function canManageItem(i) { return isAdmin() || myFlatmateId() === i.owner_id; }
+    function neededKitchenItems() { return state.kitchen.filter(i => i.status === 'needed'); }
+    // Deadline model: items for tomorrow's menu are due tonight at 22:00 (the maid cooks in
+    // the morning). Amber from 18:00, red from 22:00 — anything still needed for TODAY is red.
+    function kitchenDue() {
+      const now = new Date();
+      const dueToday = neededKitchenItems().filter(i => i.needed_for && i.needed_for <= todayIso());
+      const dueTomorrow = neededKitchenItems().filter(i => i.needed_for === tomorrowIso());
+      if (dueToday.length) return { level: 'overdue', items: dueToday, label: 'needed for today' };
+      if (dueTomorrow.length && now.getHours() >= 22) return { level: 'overdue', items: dueTomorrow, label: 'needed for tomorrow (past 22:00)' };
+      if (dueTomorrow.length && now.getHours() >= 18) return { level: 'warn', items: dueTomorrow, label: 'due by 22:00' };
+      return { level: 'ok', items: dueTomorrow, label: '' };
+    }
+    function groStatusMeta() {
+      const due = kitchenDue();
+      if (due.level === 'overdue') return { label: 'Overdue', bg: 'var(--danger-soft)', color: 'var(--danger-ink)' };
+      if (due.level === 'warn') return { label: 'Due 22:00', bg: 'var(--warn-soft)', color: 'var(--warn-ink)' };
+      return neededKitchenItems().length
+        ? { label: 'Pending', bg: 'var(--warn-soft)', color: 'var(--warn-ink)' }
+        : { label: 'All set', bg: 'var(--success-soft)', color: 'var(--success-ink)' };
+    }
+    function computeGroStats() {
+      const totals = {}, dutyN = {}, helpedN = {};
+      kitchenMates().forEach(f => { totals[f.id] = 0; dutyN[f.id] = 0; helpedN[f.id] = 0; });
+      state.kitchen.forEach(i => {
+        if (i.status !== 'bought') return;
+        totals[i.owner_id] = (totals[i.owner_id] || 0) + 1;
+        if (i.helped) helpedN[i.owner_id] = (helpedN[i.owner_id] || 0) + 1;
+        else dutyN[i.owner_id] = (dutyN[i.owner_id] || 0) + 1;
+      });
+      return { totals, dutyN, helpedN, maxT: Math.max(1, ...Object.values(totals)) };
+    }
+    /* the whole point: one clean message to the maid, sent the NIGHT BEFORE — so everything
+       in it (menu, chapatis, grocery items) is about tomorrow, matching the 22:00 deadline. */
+    function maidMessage() {
+      const t = tomorrowIso();
+      const menu = menuTextFor(t);
+      const dateLabel = new Date(t + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      let msg = '🍳 Kal ka khana — ' + dateLabel;
+      msg += menu ? '\n' + menu : '\nMenu not set — please cook the usual.';
+      const ch = chapatiTotal(t);
+      if (ch.setCount) msg += '\n\n🫓 Chapatis: ' + ch.total;
+      const items = state.kitchen.filter(i => i.needed_for === t);
+      const avail = [];
+      items.filter(i => i.status === 'bought').forEach(i => avail.push(i.name + ' ✓'));
+      items.filter(i => i.status === 'needed' && i.helped).forEach(i => avail.push(i.name + ' (' + findFlatmate(i.owner_id).name + ' bringing)'));
+      const missing = items.filter(i => i.status === 'needed' && !i.helped);
+      if (avail.length) msg += '\n\n🛒 Available: ' + avail.join(', ');
+      if (missing.length) msg += (avail.length ? '\n' : '\n\n') + '⚠️ Not available yet: ' + missing.map(i => i.name).join(', ') + ' — please adjust if needed';
+      return msg;
+    }
+    function kitchenFlatMessage() {
+      const oid = groceryOwnerId();
+      const needed = neededKitchenItems();
+      const mT = menuTextFor(tomorrowIso());
+      const chT = chapatiTotal(tomorrowIso());
+      let msg = '🛒 ' + appName() + ' — kitchen update';
+      if (oid) msg += '\nGrocery owner this week: ' + findFlatmate(oid).name;
+      if (needed.length) msg += '\nStill needed (' + needed.length + '): ' + needed.map(i => i.name + ' → ' + findFlatmate(i.owner_id).name).join(', ');
+      else msg += '\nAll grocery items bought ✅';
+      msg += '\n🫓 Chapatis for tomorrow: ' + chT.total + ' (' + chT.setCount + '/' + kitchenMates().length + ' counted)';
+      if (!mT) msg += "\n📋 Tomorrow's food is not set yet — someone add it!";
+      return msg + (state.settings.app_url ? '\n' + state.settings.app_url : '');
+    }
+    // True when the food board has typed-but-unsaved text (explicit-save model).
+    function hasUnsavedMenu() {
+      const ta = document.querySelector('[data-menu-date]');
+      return !!ta && ta.value.replace(/\s+$/, '') !== menuTextFor(ta.dataset.menuDate);
+    }
+    function groceryNudgeMessage() {
+      const due = kitchenDue();
+      if (!due.items.length) return '';
+      const byOwner = {};
+      due.items.forEach(i => { (byOwner[i.owner_id] = byOwner[i.owner_id] || []).push(i.name); });
+      const owners = Object.keys(byOwner);
+      const target = due.items.some(i => i.needed_for <= todayIso()) ? 'today' : 'tomorrow';
+      const n = due.items.length;
+      if (owners.length === 1) {
+        return '⚠️ ' + findFlatmate(Number(owners[0])).name + ', ' + n + ' item' + (n === 1 ? ' is' : 's are') + ' still needed for ' + target + ': ' + due.items.map(i => i.name).join(', ') + (state.settings.app_url ? '\n' + state.settings.app_url : '');
+      }
+      const parts = owners.map(id => findFlatmate(Number(id)).name + ': ' + byOwner[id].join(', '));
+      return '⚠️ ' + n + ' items still needed for ' + target + ' — ' + parts.join(' · ') + (state.settings.app_url ? '\n' + state.settings.app_url : '');
+    }
+
+    /* WhatsApp message */
+    function waMessage() {
+      const cur = state.turns[currentTurnIndex()];
+      if (!cur) return '';
+      const a = turnAssignee(cur), st = turnStatus(cur);
+      const nxt = state.turns[currentTurnIndex() + 1];
+      const link = state.settings.app_url ? '\n' + state.settings.app_url : '';
+      if (st === 'completed') {
+        const p = turnPhotos(cur);
+        const nPh = p.before.length + p.after.length;
+        // If there are photos AND an app link, show one clear "see the photos" line (which is also the app link),
+        // so we don't repeat the URL twice. Otherwise fall back to plain wording / plain link.
+        if (nPh && state.settings.app_url) {
+          return '✅ ' + a.name + ' has completed the cleaning for ' + cur.rangeLabel + '. Great job! 🎉' +
+            (nxt ? '\nNext up: ' + turnAssignee(nxt).name + ' (' + nxt.rangeLabel + ').' : '') +
+            '\n📸 See the before & after photos here: ' + state.settings.app_url;
+        }
+        const photoNote = nPh ? '\n📸 Before & after photos are in the app.' : '';
+        return '✅ ' + a.name + ' has completed the cleaning for ' + cur.rangeLabel + '. Great job! 🎉' +
+          (nxt ? '\nNext up: ' + turnAssignee(nxt).name + ' (' + nxt.rangeLabel + ').' : '') + photoNote + link;
+      }
+      if (st === 'overdue') {
+        return '⚠️ Reminder from ' + appName() + ': ' + a.name + ', the cleaning for ' + cur.rangeLabel + ' is OVERDUE. Please finish it as soon as possible!\nTasks: ' + taskList().join(', ') + link;
+      }
+      return '🧹 ' + appName() + ': ' + a.name + ' is on cleaning duty for ' + cur.rangeLabel + ' (' + daysLeft(cur) + ' day' + (daysLeft(cur) === 1 ? '' : 's') + ' left).\nTasks: ' + taskList().join(', ') + link;
+    }
+
+    /* ================= actions ================= */
+    function toast(msg) {
+      const box = document.getElementById('toast-box');
+      const el = document.createElement('div');
+      el.className = 'toast'; el.textContent = msg;
+      box.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+    async function mutate(fn) {
+      try { await fn(); await refresh(); }
+      catch (e) { toast('Save failed: ' + (e.message || e)); await refresh(); }
+    }
+
+    const actions = {
+      'set-tab': (el) => { state.tab = el.dataset.tab; window.scrollTo({ top: 0, behavior: 'auto' }); if (state.tab === 'admin' && isAdmin()) refreshAudit().then(render); render(); },
+      'toggle-theme': () => {
+        const t = currentTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.classList.add('theming');
+        applyTheme(t, true);
+        setTimeout(() => document.documentElement.classList.remove('theming'), 350);
+        render();
+      },
+      'toggle-glass': () => {
+        document.documentElement.classList.add('theming');
+        applyGlass(!glassOn(), true);
+        setTimeout(() => document.documentElement.classList.remove('theming'), 350);
+        render();
+      },
+      'logout': () => { if (state.session) store.logoutSession(state.session); state.user = null; state.session = null; localStorage.removeItem('f6_token'); localStorage.removeItem('f6_session'); state.tab = 'dashboard'; render(); },
+      'go-schedule': (el, e) => { e.preventDefault(); state.tab = 'schedule'; render(); },
+      'toggle-pass': (el) => {
+        const inp = document.getElementById(el.dataset.target);
+        const monkey = el.dataset.monkey ? document.getElementById(el.dataset.monkey) : null;
+        if (!inp) return;
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        el.textContent = show ? 'Hide' : 'Show';
+        // Show: one hand swings aside — monkey peeks through the gap with one eye.
+        // Hide: hand comes back, both eyes covered.
+        if (monkey) { monkey.classList.add('cover'); monkey.classList.toggle('peek', show); }
+      },
+      'share-wa': () => {
+        const msg = waMessage();
+        if (msg) window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+      },
+      // Native share sheet: sends the actual before/after image files (pick WhatsApp there).
+      'share-photos': async () => {
+        const cur = state.turns[currentTurnIndex()];
+        const p = turnPhotos(cur);
+        const all = [...p.before, ...p.after];
+        if (!all.length) return toast('No photos to share yet');
+        try {
+          const files = await Promise.all(all.map(async (durl, i) => {
+            const blob = await (await fetch(durl)).blob();
+            return new File([blob], 'clean-' + (i + 1) + '.jpg', { type: 'image/jpeg' });
+          }));
+          if (navigator.canShare && navigator.canShare({ files })) {
+            await navigator.share({ files, text: waMessage() });
+          } else {
+            toast('Photo sharing needs a phone — use the WhatsApp button on desktop');
+          }
+        } catch (e) { if (e.name !== 'AbortError') toast('Could not open share sheet'); }
+      },
+      'open-photo': (el) => { state.lightbox = el.dataset.src; render(); },
+      'close-photo': () => { state.lightbox = null; render(); },
+      'add-photo': (el) => {
+        const side = el.dataset.side, turnId = Number(el.dataset.turn);
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+        inp.onchange = async () => {
+          const files = Array.from(inp.files || []);
+          if (!files.length) return;
+          const t = state.turns.find(x => x.id === turnId);
+          if (!t || !canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can add photos');
+          try {
+            const p = turnPhotos(t);
+            const room = PHOTO_MAX_PER_SIDE - p[side].length;
+            if (room <= 0) return toast('Max ' + PHOTO_MAX_PER_SIDE + ' ' + side + ' photos');
+            toast('Compressing…');
+            const added = [];
+            for (const f of files.slice(0, room)) added.push(await fileToCompressedDataURL(f));
+            const photos = { before: p.before.slice(), after: p.after.slice() };
+            photos[side] = photos[side].concat(added);
+            await mutate(async () => {
+              await store.updateTurn(t.id, { photos });
+              await store.insertAudit(byLine(activeAssigneeId(t)) + ' added ' + added.length + ' ' + side + ' photo(s) for ' + t.rangeLabel);
+            });
+            if (files.length > room) toast('Added ' + room + ' (limit ' + PHOTO_MAX_PER_SIDE + ' per side)');
+          } catch (e) { toast('Could not add photo: ' + (e.message || e)); }
+        };
+        inp.click();
+      },
+      'remove-photo': (el) => {
+        const side = el.dataset.side, idx = Number(el.dataset.idx), turnId = Number(el.dataset.turn);
+        const t = state.turns.find(x => x.id === turnId);
+        if (!t || !canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can remove photos');
+        const p = turnPhotos(t);
+        const photos = { before: p.before.slice(), after: p.after.slice() };
+        photos[side].splice(idx, 1);
+        mutate(async () => {
+          await store.updateTurn(t.id, { photos });
+          await store.insertAudit(byLine(activeAssigneeId(t)) + ' removed a ' + side + ' photo for ' + t.rangeLabel);
+        });
+      },
+
+      'mark-cleaned': (el) => {
+        const t = state.turns.find(x => x.id === Number(el.dataset.turn));
+        if (!t || turnStatus(t) === 'completed') return;
+        if (!canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this');
+        mutate(async () => {
+          await store.updateTurn(t.id, { completed_at: new Date().toISOString() });
+          await store.insertAudit(byLine(activeAssigneeId(t)) + ' marked ' + t.rangeLabel + ' as cleaned');
+        });
+      },
+      'open-swap': () => { state.swapModalOpen = true; state.swapTargetId = null; render(); },
+      'close-swap': () => { state.swapModalOpen = false; state.swapTargetId = null; render(); },
+      'select-swap-target': (el) => { state.swapTargetId = Number(el.dataset.id); render(); },
+      'confirm-swap': () => {
+        if (!state.swapTargetId) return;
+        const t = state.turns[currentTurnIndex()];
+        const fromId = activeAssigneeId(t), toId = state.swapTargetId;
+        state.swapModalOpen = false; state.swapTargetId = null;
+        mutate(async () => {
+          await store.updateTurn(t.id, { swap: { fromId, toId, status: 'pending', type: 'swap' } });
+          await store.insertAudit(byLine(fromId) + ' requested a swap with ' + findFlatmate(toId).name + ' (' + t.rangeLabel + ')');
+        });
+      },
+      'accept-swap': (el) => {
+        const t = state.turns.find(x => x.id === Number(el.dataset.turn));
+        if (!t || !t.swap) return;
+        if (!(isAdmin() || myFlatmateId() === t.swap.toId)) return toast('Only ' + findFlatmate(t.swap.toId).name + ' (or an admin) can accept');
+        mutate(async () => {
+          await store.updateTurn(t.id, { swap: { ...t.swap, status: 'accepted' } });
+          await store.insertAudit(byLine(t.swap.toId) + ' accepted the swap for ' + t.rangeLabel);
+        });
+      },
+      'decline-swap': (el) => {
+        const t = state.turns.find(x => x.id === Number(el.dataset.turn));
+        if (!t || !t.swap) return;
+        if (!(isAdmin() || myFlatmateId() === t.swap.toId || myFlatmateId() === t.swap.fromId)) return toast('Not your swap to decline');
+        mutate(async () => {
+          await store.updateTurn(t.id, { swap: null });
+          await store.insertAudit(meName() + ' declined the swap for ' + t.rangeLabel);
+        });
+      },
+      'request-skip': () => { state.skipConfirmOpen = true; render(); },
+      'cancel-skip': () => { state.skipConfirmOpen = false; render(); },
+      'confirm-skip': () => {
+        const t = state.turns[currentTurnIndex()];
+        if (!canManageTurn(t)) { state.skipConfirmOpen = false; return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this'); }
+        const originalId = t.assignee_id;
+        const covered = nextFlatmateAfter(originalId);
+        state.skipConfirmOpen = false;
+        mutate(async () => {
+          await store.updateTurn(t.id, { swap: { fromId: originalId, toId: covered.id, status: 'accepted', type: 'skip' } });
+          await store.insertMakeup({ person_id: originalId, week_label: t.rangeLabel, source_turn_id: t.id, kind: 'clean' });
+          await store.insertAudit(byLine(originalId) + ' marked away for ' + t.rangeLabel + ' — covered by ' + covered.name);
+        });
+      },
+      'accept-makeup': (el) => {
+        const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
+        if (!entry) return;
+        if (!(isAdmin() || myFlatmateId() === entry.person_id)) return toast('Only ' + findFlatmate(entry.person_id).name + ' (or an admin) can accept');
+        const t = state.turns.find(x => x.id > entry.source_turn_id && !x.completed_at);
+        if (!t) return toast('No upcoming turn available');
+        mutate(async () => {
+          const coveredId = activeAssigneeId(t);
+          await store.updateTurn(t.id, { assignee_id: entry.person_id, swap: { fromId: coveredId, toId: entry.person_id, status: 'accepted', type: 'makeup' } });
+          await store.updateMakeup(entry.id, { resolved: true, resolved_label: t.rangeLabel });
+          await store.insertAudit(byLine(entry.person_id) + ' took ' + t.rangeLabel + ' as a makeup cleaning');
+        });
+      },
+      'request-undo': (el) => { state.undoConfirmId = Number(el.dataset.turn); render(); },
+      'cancel-undo': () => { state.undoConfirmId = null; render(); },
+      'confirm-undo': (el) => {
+        const t = state.turns.find(x => x.id === Number(el.dataset.turn));
+        if (!t || !isAdmin()) return;
+        state.undoConfirmId = null;
+        const name = turnAssignee(t).name;
+        mutate(async () => {
+          await store.updateTurn(t.id, { completed_at: null });
+          await store.insertAudit(meName() + ' undid the completed cleaning for ' + name + ' (' + t.rangeLabel + ')');
+        });
+      },
+      'start-edit': (el) => { state.editTurnId = Number(el.dataset.turn); render(); },
+      'cancel-edit': () => { state.editTurnId = null; render(); },
+      'set-assignee': (el) => {
+        const t = state.turns.find(x => x.id === Number(el.dataset.turn));
+        const newId = Number(el.dataset.id);
+        if (!t || !isAdmin()) return;
+        state.editTurnId = null;
+        const oldName = turnAssignee(t).name;
+        mutate(async () => {
+          await store.updateTurn(t.id, { assignee_id: newId, swap: null });
+          await store.insertAudit(meName() + ' reassigned ' + t.rangeLabel + ' from ' + oldName + ' to ' + findFlatmate(newId).name);
+        });
+      },
+
+      /* ----- admin: rotation period ----- */
+      'pick-period': (el) => { state.periodConfirm = Number(el.dataset.days); render(); },
+      'pick-period-custom': () => {
+        const v = parseInt((document.getElementById('custom-days') || {}).value);
+        if (!v || v < 1 || v > 60) return toast('Enter 1–60 days');
+        state.periodConfirm = v; render();
+      },
+      'cancel-period': () => { state.periodConfirm = null; render(); },
+      'pick-start-day': (el) => { state.startDayConfirm = Number(el.dataset.day); render(); },
+      'cancel-start-day': () => { state.startDayConfirm = null; render(); },
+      'confirm-start-day': () => {
+        if (!isAdmin() || state.startDayConfirm === null) return;
+        const weekday = state.startDayConfirm;
+        state.startDayConfirm = null;
+        mutate(async () => {
+          const pd = periodDays();
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          // Next occurrence of the chosen weekday (if today is that weekday, use next week so the current turn still gets a tail).
+          let offset = daysUntilWeekday(today, weekday);
+          if (offset === 0) offset = 7;
+          const newStart = addDays(today, offset);              // e.g. the coming Sunday
+          const lastDayBefore = addDays(newStart, -1);          // the Saturday before it
+          // Trim the in-progress turn so it ends the day before the new start, then wipe everything after.
+          const idx = currentTurnIndex();
+          const cur = state.turns[idx];
+          if (cur && new Date(cur.start_date + 'T00:00:00') <= lastDayBefore) {
+            await store.updateTurn(cur.id, { end_date: isoDate(lastDayBefore) });
+            // Delete every turn that starts after the (trimmed) current one, so the old
+            // cadence can't survive and reseed generation. Regeneration then continues
+            // from the trimmed turn's new end_date + 1 = the chosen start day.
+            await store.deleteFutureTurns(cur.start_date);
+          } else {
+            // No in-progress turn to trim (e.g. between turns): drop everything from today on.
+            await store.deleteFutureTurns(isoDate(addDays(today, -1)));
+          }
+          // Mirror for the grocery rotation, so a stale grocery week can't overlap the
+          // realigned schedule. Regeneration re-derives it from the new cleaning turns.
+          try {
+            const gcur = currentGroceryTurn();
+            if (gcur && new Date(gcur.start_date + 'T00:00:00') <= lastDayBefore) {
+              await store.updateGroceryTurn(gcur.id, { end_date: isoDate(lastDayBefore) });
+              await store.deleteFutureGroceryTurns(gcur.start_date);
+            } else {
+              await store.deleteFutureGroceryTurns(isoDate(addDays(today, -1)));
+            }
+          } catch (e) { /* kitchen not upgraded yet */ }
+          await store.updateSetting('start_date', isoDate(newStart));
+          await store.updateSetting('start_weekday', String(weekday));
+          await store.insertAudit(meName() + ' set the rotation to start on ' + WEEKDAYS[weekday] + 's (from ' + fmtDate(newStart) + ')');
+        });
+      },
+      'confirm-period': () => {
+        if (!isAdmin() || !state.periodConfirm) return;
+        const days = state.periodConfirm;
+        state.periodConfirm = null;
+        mutate(async () => {
+          await store.updateSetting('period_days', String(days));
+          await store.deleteFutureTurns(isoDate(new Date()));
+          try { await store.deleteFutureGroceryTurns(isoDate(new Date())); } catch (e) { /* kitchen not upgraded yet */ }
+          await store.insertAudit(meName() + ' changed rotation to every ' + days + ' day(s) — upcoming turns regenerated');
+        });
+      },
+
+      /* ----- admin: users ----- */
+      'reset-password': async (el) => {
+        if (!isAdmin()) return;
+        const u = state.users.find(x => x.id === Number(el.dataset.id));
+        if (!u) return;
+        const np = prompt('New password for "' + u.username + '" (min 8 characters — they will be asked to change it on first login):');
+        if (np === null) return;
+        if (!np || np.length < 8) return toast('Password must be at least 8 characters');
+        try {
+          await store.adminResetPassword(state.session, u.id, np);
+          state.users = await store.listUsers(state.session);
+          render();
+          toast('Password reset for ' + u.username);
+        } catch (err) { toast(err.message || 'Could not reset password'); }
+      },
+      'toggle-user-admin': async (el) => {
+        if (!isAdmin()) return;
+        const u = state.users.find(x => x.id === Number(el.dataset.id));
+        if (!u) return;
+        if (u.id === state.user.id) return toast("You can't change your own admin role");
+        try {
+          await store.adminSetAdmin(state.session, u.id, !u.is_admin);
+          state.users = await store.listUsers(state.session);
+          render();
+        } catch (err) { toast(err.message || 'Could not update role'); }
+      },
+      'delete-user': async (el) => {
+        if (!isAdmin()) return;
+        const u = state.users.find(x => x.id === Number(el.dataset.id));
+        if (!u) return;
+        if (u.id === state.user.id) return toast("You can't delete yourself");
+        if (!confirm('Delete user "' + u.username + '"?')) return;
+        try {
+          await store.adminDeleteUser(state.session, u.id);
+          state.users = await store.listUsers(state.session);
+          render();
+        } catch (err) { toast(err.message || 'Could not delete user'); }
+      },
+      'open-changepass': () => { state.changePassOpen = true; render(); },
+      'close-changepass': () => { state.changePassOpen = false; render(); },
+
+      /* ----- kitchen ----- */
+      'gro-skip': () => { state.gSkipConfirmOpen = true; render(); },
+      'gro-skip-cancel': () => { state.gSkipConfirmOpen = false; render(); },
+      'gro-skip-confirm': () => {
+        const t = currentGroceryTurn();
+        state.gSkipConfirmOpen = false;
+        if (!t) return render();
+        if (!canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this');
+        const originalId = t.assignee_id;
+        const covered = nextKitchenMateAfter(originalId);
+        if (!covered) return toast('No other kitchen member to cover');
+        mutate(async () => {
+          await store.updateGroceryTurn(t.id, { swap: { fromId: originalId, toId: covered.id, status: 'accepted', type: 'skip' } });
+          await store.insertMakeup({ person_id: originalId, week_label: t.rangeLabel, source_turn_id: t.id, kind: 'grocery' });
+          await store.insertAudit(byLine(originalId) + ' marked away for grocery duty ' + t.rangeLabel + ' — covered by ' + covered.name);
+          // hand this week's still-needed default items to whoever now owns the duty
+          for (const it of state.kitchen) {
+            if (it.status === 'needed' && it.owner_id === originalId && !it.helped) await store.updateKitchenItem(it.id, { owner_id: covered.id });
+          }
+        });
+      },
+      'gro-accept-makeup': (el) => {
+        const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
+        if (!entry) return;
+        if (!(isAdmin() || myFlatmateId() === entry.person_id)) return toast('Only ' + findFlatmate(entry.person_id).name + ' (or an admin) can accept');
+        const t = state.gturns.find(x => x.id > entry.source_turn_id && x.start_date > todayIso());
+        if (!t) return toast('No upcoming grocery week available');
+        mutate(async () => {
+          const coveredId = activeAssigneeId(t);
+          await store.updateGroceryTurn(t.id, { assignee_id: entry.person_id, swap: { fromId: coveredId, toId: entry.person_id, status: 'accepted', type: 'makeup' } });
+          await store.updateMakeup(entry.id, { resolved: true, resolved_label: t.rangeLabel });
+          await store.insertAudit(byLine(entry.person_id) + ' took grocery duty ' + t.rangeLabel + ' as a makeup week');
+        });
+      },
+      'item-bought': (el) => {
+        const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
+        if (!it || it.status === 'bought') return;
+        if (!canManageItem(it)) return toast('Only ' + findFlatmate(it.owner_id).name + ' (or an admin) can mark this bought');
+        mutate(async () => {
+          await store.updateKitchenItem(it.id, { status: 'bought', bought_at: new Date().toISOString() });
+          await store.insertAudit(meName() + ' bought "' + it.name + '"');
+        });
+      },
+      'item-take': (el) => {
+        const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
+        const me = myFlatmateId();
+        if (!it || it.status === 'bought') return;
+        if (!me) return toast('Your login is not linked to a flatmate');
+        if (!isKitchenMate(me)) return toast('Only kitchen members can take items');
+        if (it.owner_id === me) return;
+        const prev = findFlatmate(it.owner_id).name;
+        const gt = currentGroceryTurn();
+        const helped = !gt || activeAssigneeId(gt) !== me; // taking an item off the duty owner = helping out
+        mutate(async () => {
+          await store.updateKitchenItem(it.id, { owner_id: me, helped });
+          await store.insertAudit(meName() + ' will bring "' + it.name + '" (was ' + prev + ')');
+        });
+      },
+      'item-remove': (el) => {
+        const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
+        if (!it) return;
+        if (!canManageItem(it)) return toast('Only ' + findFlatmate(it.owner_id).name + ' (or an admin) can remove this');
+        mutate(async () => {
+          await store.deleteKitchenItem(it.id);
+          await store.insertAudit(meName() + ' removed "' + it.name + '" from the grocery list');
+        });
+      },
+      'chap-set': (el) => {
+        const me = myFlatmateId();
+        if (!me) return toast('Your login is not linked to a flatmate');
+        const iso = tomorrowIso();
+        const map = chapatiMapFor(iso);
+        const cur = chapatiCountFor(iso, me).n;
+        const next = Math.max(0, Math.min(20, cur + Number(el.dataset.delta)));
+        if (next === cur && map[me] != null) return;
+        map[me] = next;
+        mutate(async () => { await store.updateSetting('chapati_' + iso, JSON.stringify(map)); });
+      },
+      'chap-default': () => {
+        const me = myFlatmateId();
+        if (!me) return;
+        const val = chapatiCountFor(tomorrowIso(), me).n;
+        const d = chapatiDefaults();
+        d[me] = val;
+        mutate(async () => {
+          await store.updateSetting('chapati_defaults', JSON.stringify(d));
+          await store.insertAudit(meName() + ' set their daily chapati default to ' + val);
+        });
+      },
+      'toggle-kitchen-member': (el) => {
+        if (!isAdmin()) return;
+        const f = findFlatmate(Number(el.dataset.id));
+        if (!f || !f.id) return;
+        const joining = f.in_kitchen === false;
+        const km = kitchenMates();
+        if (!joining && km.length <= 1) return toast('At least one kitchen member is required');
+        mutate(async () => {
+          await store.updateFlatmate(f.id, { in_kitchen: joining });
+          // Future grocery weeks must reflect the new roster — regenerate them.
+          try { await store.deleteFutureGroceryTurns(todayIso()); } catch (e) { /* kitchen not upgraded yet */ }
+          await store.insertAudit(meName() + (joining ? ' added ' : ' removed ') + f.name + (joining ? ' to' : ' from') + ' the kitchen');
+        });
+      },
+      'save-menu': (el) => {
+        const dateIso = el.dataset.date;
+        const ta = document.querySelector('[data-menu-date="' + dateIso + '"]');
+        if (!ta) return;
+        const val = ta.value.replace(/\s+$/, '');
+        if (menuTextFor(dateIso) === val) return;
+        const dayName = new Date(dateIso + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long' });
+        mutate(async () => {
+          await store.updateSetting('menu_' + dateIso, JSON.stringify({ text: val }));
+          await store.insertAudit(meName() + " set " + dayName + "'s food" + (val ? '' : ' (cleared)'));
+        });
+        toast(val ? "Tomorrow's food saved" : "Tomorrow's food cleared");
+      },
+      'send-maid': () => {
+        if (hasUnsavedMenu()) return toast("Save tomorrow's food first");
+        window.open('https://wa.me/?text=' + encodeURIComponent(maidMessage()), '_blank');
+      },
+      'share-kitchen': () => {
+        if (hasUnsavedMenu()) return toast("Save tomorrow's food first");
+        window.open('https://wa.me/?text=' + encodeURIComponent(kitchenFlatMessage()), '_blank');
+      },
+      'nudge-grocery': () => { const m = groceryNudgeMessage(); if (m) window.open('https://wa.me/?text=' + encodeURIComponent(m), '_blank'); },
+    };
+
+    document.addEventListener('click', (e) => {
+      const overlay = e.target.classList && e.target.classList.contains('modal-overlay') ? e.target : null;
+      if (overlay && overlay.dataset.dismiss) {
+        const a = actions[overlay.dataset.dismiss];
+        if (a) a(overlay, e);
+        return;
+      }
+      const el = e.target.closest('[data-action]');
+      if (!el) return;
+      const fn = actions[el.dataset.action];
+      if (fn) fn(el, e);
+    });
+
+    // Food board is explicit-save: typing only marks the Save button live. Nothing is
+    // committed until the user taps Save, so a half-typed menu can never reach the maid.
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!el.dataset || !el.dataset.menuDate) return;
+      const dirty = el.value.replace(/\s+$/, '') !== menuTextFor(el.dataset.menuDate);
+      const btn = document.getElementById('menu-save');
+      const lbl = document.getElementById('menu-dirty');
+      if (btn) btn.disabled = !dirty;
+      if (lbl) { lbl.textContent = dirty ? 'Unsaved changes' : 'No unsaved changes'; lbl.style.color = dirty ? 'var(--warn-ink)' : 'var(--ink-4)'; }
+    });
+
+    // Login mascot: peeks over the "wall" (the title), eyes track where your text
+    // actually is in the username field, and it ducks behind the wall for the password.
+    function loginMascot() { return document.getElementById('login-mascot'); }
+    let _mkCanvas = null;
+    function textPixelFrac(inp) {
+      // Where is the end of the typed text, as a fraction of the field width? 0 = left, 1 = right.
+      if (!inp.value) return 0.08; // empty: look at the left edge where typing will start
+      if (!_mkCanvas) _mkCanvas = document.createElement('canvas');
+      const ctx = _mkCanvas.getContext('2d');
+      const cs = getComputedStyle(inp);
+      ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      const caret = inp.selectionStart != null ? inp.selectionStart : inp.value.length;
+      const w = ctx.measureText(inp.value.slice(0, caret)).width + parseFloat(cs.paddingLeft || '0');
+      const usable = inp.clientWidth || 1;
+      return Math.max(0, Math.min(1, w / usable));
+    }
+    function monkeyWatch() {
+      const m = loginMascot(); if (!m) return;
+      m.classList.remove('cover', 'peek');
+      const inp = document.getElementById('login-user');
+      if (!inp) return;
+      const frac = textPixelFrac(inp);
+      const dx = (frac - 0.5) * 7;          // pupils slide toward the text
+      const dy = 2.5;                        // and look DOWN at the field
+      const headShift = (frac - 0.5) * 8;    // head leans the same way
+      const pl = document.getElementById('mk-pupil-l');
+      const pr = document.getElementById('mk-pupil-r');
+      const head = document.getElementById('mk-head');
+      if (pl) pl.setAttribute('transform', `translate(${dx.toFixed(1)},${dy})`);
+      if (pr) pr.setAttribute('transform', `translate(${dx.toFixed(1)},${dy})`);
+      if (head) head.setAttribute('transform', `translate(${headShift.toFixed(1)},0) rotate(${((frac - 0.5) * 5).toFixed(1)} 45 30)`);
+    }
+    function monkeyCover() {
+      const m = loginMascot(); if (!m) return;
+      m.classList.remove('peek');
+      m.classList.add('cover');             // hands up over the eyes — no peeking!
+      // reset gaze so the pupils sit centered behind the hands
+      const pl = document.getElementById('mk-pupil-l');
+      const pr = document.getElementById('mk-pupil-r');
+      const head = document.getElementById('mk-head');
+      if (pl) pl.setAttribute('transform', 'translate(0,0)');
+      if (pr) pr.setAttribute('transform', 'translate(0,0)');
+      if (head) head.setAttribute('transform', 'translate(0,0)');
+    }
+    document.addEventListener('focusin', (e) => {
+      if (e.target.id === 'login-user') monkeyWatch();
+      else if (e.target.id === 'login-pass') monkeyCover();
+    });
+    document.addEventListener('input', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
+    document.addEventListener('keyup', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
+    document.addEventListener('click', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
+
+    document.addEventListener('submit', async (e) => {
+      /* login */
+      if (e.target.id === 'login-form') {
+        e.preventDefault();
+        const un = document.getElementById('login-user').value.trim().toLowerCase();
+        const pw = document.getElementById('login-pass').value;
+        try {
+          const res = await store.login(un, pw);
+          state.user = res.user;
+          state.session = res.token;
+          localStorage.setItem('f6_token', res.token);
+          localStorage.removeItem('f6_session'); // old insecure session id
+          if (state.user.is_admin) { try { state.users = await store.listUsers(state.session); } catch (_) { state.users = []; } }
+          state.tab = 'dashboard';
+          render();
+          if (!state.user.must_change) toast('Welcome, ' + meName() + '!');
+        } catch (err) { toast(err.message || 'Login failed'); }
+      }
+      /* forced / voluntary password change */
+      if (e.target.id === 'newpass-form') {
+        e.preventDefault();
+        const oldPw = document.getElementById('np-old').value;
+        const p1 = document.getElementById('np-new').value;
+        const p2 = document.getElementById('np-new2').value;
+        if (p1 !== p2) return toast('New passwords do not match');
+        if (p1.length < 8) return toast('Password must be at least 8 characters');
+        try {
+          await store.changePassword(state.session, oldPw, p1);
+          state.user.must_change = false;
+          state.changePassOpen = false;
+          render();
+          toast('Password changed 🔒');
+        } catch (err) { toast(err.message || 'Could not change password'); }
+      }
+      /* admin: add user */
+      if (e.target.id === 'user-form') {
+        e.preventDefault();
+        if (!isAdmin()) return;
+        const un = document.getElementById('nu-username').value.trim().toLowerCase();
+        const pw = document.getElementById('nu-password').value;
+        const fid = Number(document.getElementById('nu-flatmate').value) || null;
+        const adm = document.getElementById('nu-admin').checked;
+        if (!/^[a-z0-9_.-]{2,20}$/.test(un)) return toast('Username: 2–20 letters/numbers');
+        if (!pw || pw.length < 8) return toast('Password must be at least 8 characters');
+        try {
+          await store.adminCreateUser(state.session, un, pw, fid, adm);
+          state.users = await store.listUsers(state.session);
+          render();
+          toast('User ' + un + ' created — they must change this password on first login');
+        } catch (err) { toast(err.message || 'Could not create user'); }
+      }
+      /* kitchen: add grocery item */
+      if (e.target.id === 'kitchen-add-form') {
+        e.preventDefault();
+        const inp = document.getElementById('ki-name');
+        const name = (inp.value || '').trim();
+        if (!name) return;
+        const forSel = document.getElementById('ki-for');
+        const neededFor = forSel && forSel.value === 'today' ? todayIso() : tomorrowIso();
+        const gt = currentGroceryTurn();
+        const ownerId = gt ? activeAssigneeId(gt) : (myFlatmateId() || state.flatmates[0].id);
+        inp.value = '';
+        mutate(async () => {
+          await store.insertKitchenItem({ name, status: 'needed', owner_id: ownerId, added_by: meName(), needed_for: neededFor, helped: false });
+          await store.insertAudit(meName() + ' added "' + name + '" to the grocery list (for ' + (neededFor === todayIso() ? 'today' : 'tomorrow') + ')');
+        });
+      }
+      /* admin: general settings */
+      if (e.target.id === 'settings-form') {
+        e.preventDefault();
+        if (!isAdmin()) return;
+        const name = document.getElementById('set-name').value.trim() || 'Ghar';
+        const url = document.getElementById('set-url').value.trim();
+        const tasks = document.getElementById('set-tasks').value.trim() || DEFAULT_TASKS;
+        mutate(async () => {
+          await store.updateSetting('app_name', name);
+          await store.updateSetting('app_url', url);
+          await store.updateSetting('tasks', tasks);
+          await store.insertAudit(meName() + ' updated app settings');
+        });
+        toast('Settings saved');
+      }
+    });
+
+    /* ================= rendering ================= */
+    function av(f, size, fs) {
+      return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${fs}px;background:${f.color}">${esc(initials(f.name))}</div>`;
+    }
+    function pill(meta) { return `<div class="pill" style="background:${meta.bg};color:${meta.color}">${meta.label}</div>`; }
+
+    function renderChangePassword(forced) {
+      const inner = `
+        <form id="newpass-form">
+          <label class="fld" for="np-old">Current password</label>
+          <input class="input" id="np-old" type="password" autocomplete="current-password" required>
+          <label class="fld" for="np-new">New password <span style="font-weight:400;color:var(--ink-3);">(min 8 characters)</span></label>
+          <input class="input" id="np-new" type="password" autocomplete="new-password" minlength="8" required>
+          <label class="fld" for="np-new2">Repeat new password</label>
+          <input class="input" id="np-new2" type="password" autocomplete="new-password" minlength="8" required>
+          <button class="btn primary" type="submit" style="width:100%;margin-top:20px;">Change password</button>
+          ${forced ? '<button class="btn" type="button" data-action="logout" style="width:100%;margin-top:8px;">Log out</button>' : '<button class="btn" type="button" data-action="close-changepass" style="width:100%;margin-top:8px;">Cancel</button>'}
+        </form>`;
+      if (forced) {
+        return `
+        <div class="login-wrap">
+          <div class="login-card">
+            <div style="text-align:center;margin-bottom:18px;">
+              <div style="font-size:40px;">🔒</div>
+              <div style="font-size:20px;font-weight:800;margin-top:6px;">Set a new password</div>
+              <div style="font-size:13px;color:var(--ink-3);margin-top:4px;">For everyone's security you need to replace your current password before continuing.</div>
+            </div>
+            ${inner}
+          </div>
+        </div>`;
+      }
+      return `
+      <div class="modal-overlay" data-dismiss="close-changepass">
+        <div class="modal">
+          <div style="font-size:17px;font-weight:700;margin-bottom:12px;">Change password</div>
+          ${inner}
+        </div>
+      </div>`;
+    }
+
+    function renderLogin() {
+      return `
+      <div class="login-wrap">
+        <div class="login-card">
+          <button class="icon-btn login-theme" type="button" data-action="toggle-theme" title="Switch light/dark mode" aria-label="Switch light/dark mode">${themeIcon()}</button>
+          <div style="text-align:center;margin-bottom:22px;">
+            <div class="mascot-clip">
+              <svg class="mascot-svg" id="login-mascot" width="90" height="72" viewBox="0 0 90 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g class="mk-head" id="mk-head">
+                  <!-- ears -->
+                  <circle cx="16" cy="26" r="10" fill="#8a5a3b"/>
+                  <circle cx="16" cy="26" r="5" fill="#b07d54"/>
+                  <circle cx="74" cy="26" r="10" fill="#8a5a3b"/>
+                  <circle cx="74" cy="26" r="5" fill="#b07d54"/>
+                  <!-- head -->
+                  <ellipse cx="45" cy="28" rx="27" ry="24" fill="#8a5a3b"/>
+                  <!-- face -->
+                  <ellipse cx="45" cy="34" rx="19" ry="17" fill="#e9c9a8"/>
+                  <!-- eyes (whites) -->
+                  <ellipse cx="37" cy="27" rx="6.5" ry="7" fill="#fff"/>
+                  <ellipse cx="53" cy="27" rx="6.5" ry="7" fill="#fff"/>
+                  <!-- pupils (track your typing) -->
+                  <circle class="mk-eye-pupil" id="mk-pupil-l" cx="37" cy="27" r="3.2" fill="#2a1c10"/>
+                  <circle class="mk-eye-pupil" id="mk-pupil-r" cx="53" cy="27" r="3.2" fill="#2a1c10"/>
+                  <!-- nose + mouth -->
+                  <ellipse cx="42" cy="39" rx="1.6" ry="1.1" fill="#7a4a2a"/>
+                  <ellipse cx="48" cy="39" rx="1.6" ry="1.1" fill="#7a4a2a"/>
+                  <path d="M40 44 Q45 47 50 44" stroke="#7a4a2a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                  <!-- hands that cover the eyes for the password -->
+                  <g class="mk-cover" id="mk-cover-l">
+                    <ellipse cx="37" cy="27" rx="8.5" ry="7.5" fill="#8a5a3b"/>
+                    <ellipse cx="37" cy="25.5" rx="6.5" ry="4.5" fill="#b07d54"/>
+                  </g>
+                  <g class="mk-cover" id="mk-cover-r">
+                    <ellipse cx="53" cy="27" rx="8.5" ry="7.5" fill="#8a5a3b"/>
+                    <ellipse cx="53" cy="25.5" rx="6.5" ry="4.5" fill="#b07d54"/>
+                  </g>
+                </g>
+                <!-- hands gripping the top of the wall -->
+                <g><ellipse cx="24" cy="66" rx="7.5" ry="5" fill="#8a5a3b"/><ellipse cx="24" cy="64" rx="6" ry="3" fill="#b07d54"/></g>
+                <g><ellipse cx="66" cy="66" rx="7.5" ry="5" fill="#8a5a3b"/><ellipse cx="66" cy="64" rx="6" ry="3" fill="#b07d54"/></g>
+              </svg>
+            </div>
+            <div class="wall-title">${esc(appName())}</div>
+            <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Sign in to your ghar</div>
+          </div>
+          <form id="login-form">
+            <label class="fld" for="login-user">Username</label>
+            <input class="input" id="login-user" autocomplete="username" autocapitalize="none" required>
+            <label class="fld" for="login-pass">Password</label>
+            <div class="pass-row">
+              <input class="input" id="login-pass" type="password" autocomplete="current-password" required>
+              <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass" data-monkey="login-mascot">Show</button>
+            </div>
+            <button class="btn primary" type="submit" style="width:100%;margin-top:20px;">Sign in</button>
+          </form>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:16px;text-align:center;">
+            ${CONFIGURED ? 'Forgot your password? Ask your flat admin to reset it.' : 'Demo logins: <strong>admin / 1234</strong>, or ayan, zakariya, haseeb, ikram, malik, zeeshan (all <strong>1234</strong>).'}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderHeader() {
+      const fid = myFlatmateId();
+      const me = fid ? findFlatmate(fid) : null;
+      const tabDefs = [['dashboard', 'Dashboard']];
+      if (canSeeKitchen()) tabDefs.push(['kitchen', 'Kitchen']);
+      tabDefs.push(['schedule', 'Schedule'], ['history', 'History']);
+      if (isAdmin()) tabDefs.push(['admin', 'Admin']);
+      const tabs = tabDefs.map(([k, l]) => `<button class="tab ${state.tab === k ? 'active' : ''}" data-action="set-tab" data-tab="${k}">${l}</button>`).join('');
+      return `
+      <div class="header">
+        <div class="brand-row">
+          <div class="logo-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3.2 3.6 10a1.6 1.6 0 0 0-.6 1.25V19a2 2 0 0 0 2 2h4.2v-5.2a1.3 1.3 0 0 1 1.3-1.3h3a1.3 1.3 0 0 1 1.3 1.3V21H19a2 2 0 0 0 2-2v-7.75a1.6 1.6 0 0 0-.6-1.25L12 3.2z" fill="white"/><circle cx="18.6" cy="4.6" r="1.3" fill="white" opacity=".85"/></svg></div>
+          <div>
+            <div class="brand">${esc(appName())}</div>
+            <div class="sub">Cleaning &amp; kitchen · ${periodLabel()}</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="me-chip">
+            ${me ? av(me, 24, 10) : '<div class="avatar" style="width:24px;height:24px;font-size:10px;background:var(--accent)">A</div>'}
+            ${esc(state.user.username)}${isAdmin() ? ' · admin' : ''}
+            <button class="btn xs" data-action="open-changepass" style="margin-left:4px;" title="Change my password">🔒</button>
+            <button class="btn xs" data-action="logout" style="margin-left:4px;">Log out</button>
+          </div>
+          <button class="icon-btn" type="button" data-action="toggle-theme" title="Switch light/dark mode" aria-label="Switch light/dark mode">${themeIcon()}</button>
+          <button class="icon-btn" type="button" data-action="toggle-glass" title="Toggle glass look" aria-label="Toggle glass look">${glassIcon()}</button>
+        </div>
+      </div>
+      <div class="tabbar" id="tabbar">
+        <div class="tabs">${tabs}</div>
+      </div>`;
+    }
+
+    function renderPhotoCol(t, side, editable) {
+      const p = turnPhotos(t);
+      const list = p[side];
+      const label = side === 'before' ? 'Before' : 'After';
+      const thumbs = list.map((src, i) => `
+        <div class="thumb">
+          <img src="${src}" data-action="open-photo" data-src="${src}" alt="${label} ${i + 1}">
+          ${editable ? `<button class="rm" data-action="remove-photo" data-side="${side}" data-idx="${i}" data-turn="${t.id}" title="Remove">×</button>` : ''}
+        </div>`).join('');
+      const adder = editable && list.length < PHOTO_MAX_PER_SIDE
+        ? `<button class="add-photo" data-action="add-photo" data-side="${side}" data-turn="${t.id}" title="Add ${label.toLowerCase()} photo">＋</button>`
+        : '';
+      const empty = (!list.length && !editable) ? '<div class="photo-empty">No photos</div>' : '';
+      return `
+        <div>
+          <div class="photo-col-title">${label}${list.length ? ' · ' + list.length : ''}</div>
+          <div class="thumbs">${thumbs}${adder}${empty}</div>
+        </div>`;
+    }
+    function renderPhotos(t, editable) {
+      if (!editable && !hasPhotos(t)) return '';
+      return `
+        <div class="photos-block">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+            <div class="kicker">Before &amp; After Photos</div>
+            ${hasPhotos(t) ? `<button class="btn wa sm" data-action="share-photos">📤 Share photos</button>` : ''}
+          </div>
+          <div class="photos-cols">
+            ${renderPhotoCol(t, 'before', editable)}
+            ${renderPhotoCol(t, 'after', editable)}
+          </div>
+          ${editable ? '<div style="margin-top:10px;font-size:12px;color:var(--ink-4);">Photos are compressed and auto-deleted once the next turn starts, so storage stays free.</div>' : ''}
+        </div>`;
+    }
+
+    function renderDashboard() {
+      const idx = currentTurnIndex();
+      const cur = state.turns[idx];
+      const next = state.turns[idx + 1] || cur;
+      if (!cur) return '';
+      const st = turnStatus(cur), meta = statusMeta(st);
+      const a = turnAssignee(cur);
+      const canAct = canManageTurn(cur);
+      const pendingSwap = cur.swap && cur.swap.status === 'pending';
+      const dl = daysLeft(cur);
+
+      let html = '';
+      if (st === 'overdue') {
+        html += `
+        <div class="banner-warn">
+          <div style="font-size:20px;line-height:1;">⚠️</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:var(--warn-ink);">${esc(appName())} Reminder</div>
+            <div style="font-size:14px;color:var(--warn-ink);margin-top:4px;">This turn's cleaning is still pending. Assigned to <strong>${esc(a.name)}</strong> — use the WhatsApp button below to nudge them.</div>
+          </div>
+        </div>`;
+      }
+
+      html += `
+      <div class="card shadow hero" style="--pc:${a.color};">
+        <div class="hero-glow"></div>
+        <div class="hero-top">
+          <div class="kicker">Cleaning · ${cur.rangeLabel}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${myFlatmateId() === activeAssigneeId(cur) ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink);">Your turn</div>' : ''}
+            ${st === 'pending' ? `<div class="pill soft">${dl} day${dl === 1 ? '' : 's'} left</div>` : ''}
+            ${pill(meta)}
+          </div>
+        </div>
+        <div class="hero-main">
+          <div class="avatar hero-av" style="background:${a.color}">${esc(initials(a.name))}</div>
+          <div style="flex:1;min-width:150px;">
+            <div class="hero-name">${esc(a.name)}</div>
+            <div class="hero-sub">${st === 'completed' ? 'All done for this turn 🎉' : 'On cleaning duty this turn'}</div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          ${canAct && st !== 'completed' ? `<button class="btn primary lg" data-action="mark-cleaned" data-turn="${cur.id}">Mark as Cleaned</button>` : ''}
+          <button class="btn wa lg" data-action="share-wa">${st === 'completed' ? '📲 Share on WhatsApp' : '📲 Remind on WhatsApp'}</button>
+          ${canAct && st !== 'completed' ? `<button class="btn ghost" data-action="open-swap">Swap</button>` : ''}
+          ${canAct && st !== 'completed' && !(cur.swap && cur.swap.type === 'skip') ? `<button class="btn ghost" data-action="request-skip">I'm away</button>` : ''}
+          ${isAdmin() && st === 'completed' && state.undoConfirmId !== cur.id ? `<button class="btn danger-outline" data-action="request-undo" data-turn="${cur.id}">Undo (admin)</button>` : ''}
+        </div>
+        ${!canAct && st !== 'completed' ? `<div style="margin-top:12px;font-size:13px;color:var(--ink-3);">Only ${esc(a.name)} (or an admin) can act on this turn.</div>` : ''}
+        ${state.undoConfirmId === cur.id && isAdmin() ? `
+        <div class="strip red">
+          <div style="font-size:13px;color:var(--danger-ink);">Mark ${cur.rangeLabel} as <strong>not cleaned</strong>?</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn sm" data-action="cancel-undo">Cancel</button>
+            <button class="btn sm danger" data-action="confirm-undo" data-turn="${cur.id}">Confirm undo</button>
+          </div>
+        </div>` : ''}
+        ${pendingSwap ? `
+        <div class="strip yellow">
+          <div style="font-size:13px;color:var(--warn-ink);">Swap requested: ${esc(findFlatmate(cur.swap.fromId).name)} → <strong>${esc(findFlatmate(cur.swap.toId).name)}</strong>. Waiting for ${esc(findFlatmate(cur.swap.toId).name)} to accept.</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn sm" data-action="decline-swap" data-turn="${cur.id}">Decline</button>
+            <button class="btn sm primary" data-action="accept-swap" data-turn="${cur.id}">Accept</button>
+          </div>
+        </div>` : ''}
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border-soft);display:flex;flex-wrap:wrap;gap:6px;">
+          ${taskList().map(t => `<div class="task-chip">${esc(t)}</div>`).join('')}
+        </div>
+        ${renderPhotos(cur, canAct)}
+      </div>`;
+
+      // Kitchen at a glance — the home screen covers BOTH duties, not just cleaning.
+      if (canSeeKitchen() && state.kitchenReady) {
+        const gt = currentGroceryTurn();
+        if (gt) {
+          const go = turnAssignee(gt);
+          const gMeta = groStatusMeta();
+          const nNeeded = neededKitchenItems().length;
+          const mTom = !!menuTextFor(tomorrowIso());
+          const chT = chapatiTotal(tomorrowIso());
+          const facts = [
+            nNeeded ? nNeeded + ' item' + (nNeeded === 1 ? '' : 's') + ' needed' : 'nothing needed',
+            mTom ? "tomorrow's food set ✓" : "tomorrow's food not set",
+            '🫓 ' + chT.total + ' (' + chT.setCount + '/' + kitchenMates().length + ')',
+          ].join(' · ');
+          html += `
+      <div class="card shadow" style="padding:22px 28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <div class="kicker">Kitchen · ${gt.rangeLabel}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${myFlatmateId() === activeAssigneeId(gt) ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink);">Your duty</div>' : ''}
+            ${pill(gMeta)}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          ${av(go, 40, 15)}
+          <div style="flex:1;min-width:150px;">
+            <div style="font-size:16px;font-weight:700;">${esc(go.name)} <span style="font-weight:500;color:var(--ink-3);">· grocery owner</span></div>
+            <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">${facts}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn wa sm" data-action="send-maid">🍳 Send to maid</button>
+            <button class="btn sm" data-action="set-tab" data-tab="kitchen">Open kitchen →</button>
+          </div>
+        </div>
+      </div>`;
+        }
+      }
+
+      const owed = state.makeup.filter(m => !m.resolved && m.kind !== 'grocery');
+      if (owed.length) {
+        html += `
+        <div class="card" style="padding:20px 24px;">
+          <div class="kicker" style="margin-bottom:14px;">Makeup owed</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${owed.map(m => {
+              const f = findFlatmate(m.person_id);
+              return `
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                ${av(f, 32, 12)}
+                <div style="flex:1;font-size:14px;color:var(--ink-2);min-width:180px;"><strong>${esc(f.name)}</strong> skipped ${esc(m.week_label)} — owes a makeup cleaning</div>
+                <button class="btn sm primary" data-action="accept-makeup" data-id="${esc(m.id)}">Accept &amp; take next turn</button>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }
+
+      const na = turnAssignee(next);
+      html += `
+      <div class="card" style="padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="kicker" style="margin-bottom:6px;">Cleaning · up next · ${next.rangeLabel}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${av(na, 36, 14)}
+            <div style="font-size:16px;font-weight:600;">${esc(na.name)}</div>
+          </div>
+        </div>
+        <a href="#" data-action="go-schedule" style="font-size:14px;font-weight:600;text-decoration:none;">View full schedule →</a>
+      </div>`;
+
+      html += renderTotals(false);
+      return html;
+    }
+
+    function computeStats() {
+      const totals = {};
+      state.flatmates.forEach(f => { totals[f.id] = 0; });
+      state.turns.forEach(t => { if (t.completed_at) { const id = activeAssigneeId(t); totals[id] = (totals[id] || 0) + 1; } });
+      const vals = Object.values(totals);
+      // No flatmates (e.g. empty table) — return a neutral shape rather than crashing the
+      // whole render; the dashboard shows a setup banner instead.
+      if (!vals.length) return { totals, maxT: 1, mostId: null, leastId: null, unfair: false };
+      const maxT = Math.max(1, ...vals), minT = Math.min(...vals);
+      const ids = Object.keys(totals);
+      const mostId = ids.reduce((x, y) => totals[x] >= totals[y] ? x : y);
+      const leastId = ids.reduce((x, y) => totals[x] <= totals[y] ? x : y);
+      return { totals, maxT, mostId, leastId, unfair: (Math.max(...vals) - minT) >= 2 };
+    }
+
+    function renderTotals(barsOnly) {
+      const s = computeStats();
+      if (barsOnly) {
+        return `
+        <div class="card" style="padding:24px 28px;">
+          <div class="kicker" style="margin-bottom:16px;">Cleaning · completed</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${state.flatmates.map(f => `
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:88px;font-size:13px;font-weight:600;flex-shrink:0;">${esc(f.name)}</div>
+              <div class="bar-track"><div class="bar-fill" style="background:${f.color};width:${Math.round((s.totals[f.id] / s.maxT) * 100)}%"></div></div>
+              <div style="width:20px;font-size:13px;font-weight:700;text-align:right;">${s.totals[f.id]}</div>
+            </div>`).join('')}
+          </div>
+        </div>`;
+      }
+      const fairNote = s.unfair
+        ? `<div class="fair-note">⚖️ ${esc(findFlatmate(Number(s.mostId)).name)} has cleaned the most, ${esc(findFlatmate(Number(s.leastId)).name)} the least — consider balancing the next few swaps.</div>` : '';
+      return `
+      <div>
+        <div class="kicker" style="margin-bottom:12px;padding-left:2px;">Cleaning totals</div>
+        <div class="stat-grid">
+          ${state.flatmates.map(f => `
+          <div class="stat-card">
+            ${av(f, 40, 15)}
+            <div style="font-size:13px;font-weight:600;">${esc(f.name)}</div>
+            <div style="font-size:20px;font-weight:800;">${s.totals[f.id]}</div>
+            <div style="font-size:11px;color:var(--ink-3);">cleanings</div>
+            ${s.unfair && String(f.id) === s.mostId ? '<div class="badge" style="background:var(--warn-soft);color:var(--warn-ink);">MOST</div>' : ''}
+            ${s.unfair && String(f.id) === s.leastId ? '<div class="badge" style="background:var(--accent-soft);color:var(--accent-ink);">LEAST</div>' : ''}
+          </div>`).join('')}
+        </div>
+        ${fairNote}
+      </div>`;
+    }
+
+    function renderSchedule() {
+      const idx = currentTurnIndex();
+      const first = state.turns[0];
+      const startLabel = first ? (first.rangeLabel + ' ' + first.start.getFullYear()) : '';
+      return `
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
+          <div style="font-size:18px;font-weight:700;">Rotation Schedule</div>
+          <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Started ${startLabel} · ${periodLabel()} · repeats every ${state.flatmates.length} turns</div>
+        </div>
+        ${state.turns.map(t => {
+          const st = turnStatus(t), meta = statusMeta(st);
+          const a = turnAssignee(t), note = turnSwapNote(t);
+          const isCur = state.turns[idx] && t.id === state.turns[idx].id;
+          const pending = t.swap && t.swap.status === 'pending';
+          const editing = isAdmin() && state.editTurnId === t.id;
+          return `
+          <div style="background:${isCur ? 'var(--row-current)' : 'var(--surface)'};">
+            <div class="row">
+              <div class="date">${t.rangeLabel}</div>
+              ${av(a, 32, 12)}
+              <div class="who">
+                <div class="nm">${esc(a.name)}</div>
+                ${note ? `<div class="note">${esc(note)}</div>` : ''}
+              </div>
+              ${pending ? `
+              <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+                <div style="font-size:12px;color:var(--warn-ink);font-weight:600;">${esc(findFlatmate(t.swap.toId).name)} to accept</div>
+                <button class="btn xs" data-action="decline-swap" data-turn="${t.id}">Decline</button>
+                <button class="btn xs primary" data-action="accept-swap" data-turn="${t.id}">Accept</button>
+              </div>` : ''}
+              ${isCur ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink);font-size:11px;">NOW</div>' : ''}
+              ${pill(meta)}
+              ${isAdmin() && !editing ? `<button class="btn xs" data-action="start-edit" data-turn="${t.id}">Reassign</button>` : ''}
+              ${isAdmin() && st === 'completed' && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
+              ${isAdmin() && st === 'completed' && state.undoConfirmId === t.id ? `
+              <div style="display:flex;gap:6px;flex-shrink:0;">
+                <button class="btn xs" data-action="cancel-undo">Cancel</button>
+                <button class="btn xs danger" data-action="confirm-undo" data-turn="${t.id}">Confirm</button>
+              </div>` : ''}
+            </div>
+            ${editing ? `
+            <div style="padding:4px 24px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              <div style="font-size:12px;color:var(--ink-3);margin-right:4px;">Assign to:</div>
+              ${state.flatmates.map(f => `
+              <div data-action="set-assignee" data-turn="${t.id}" data-id="${f.id}" style="display:flex;align-items:center;gap:6px;padding:6px 10px 6px 6px;border-radius:100px;border:1.5px solid ${f.color};opacity:${f.id === t.assignee_id ? 1 : 0.55};cursor:pointer;background:var(--surface);">
+                ${av(f, 22, 10)}
+                <div style="font-size:12px;font-weight:600;">${esc(f.name)}</div>
+              </div>`).join('')}
+              <button class="btn xs" style="margin-left:8px;border-radius:100px;" data-action="cancel-edit">Cancel</button>
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    function renderHistory() {
+      const done = state.turns.filter(t => t.completed_at).slice().reverse();
+      return renderTotals(true) + `
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);font-size:18px;font-weight:700;">History</div>
+        ${done.length === 0 ? '<div class="boot">No completed cleanings yet.</div>' : ''}
+        ${done.map(t => {
+          const a = turnAssignee(t), note = turnSwapNote(t);
+          return `
+          <div class="row">
+            <div class="date">${t.rangeLabel}</div>
+            ${av(a, 32, 12)}
+            <div class="who">
+              <div class="nm">${esc(a.name)}</div>
+              ${note ? `<div class="note">${esc(note)}</div>` : ''}
+            </div>
+            <div style="font-size:12px;color:var(--ink-3);">${fmtDate(t.completed_at)}</div>
+            <div class="pill" style="background:var(--success-soft);color:var(--success-ink);">Cleaned</div>
+            ${isAdmin() && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
+            ${isAdmin() && state.undoConfirmId === t.id ? `
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <button class="btn xs" data-action="cancel-undo">Cancel</button>
+              <button class="btn xs danger" data-action="confirm-undo" data-turn="${t.id}">Confirm</button>
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    function renderKitchen() {
+      if (!canSeeKitchen()) return '<div class="boot">Kitchen members only — ask your admin for access.</div>';
+      if (!state.kitchenReady) {
+        return `
+        <div class="banner-warn">
+          <div style="font-size:20px;line-height:1;">🧰</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:var(--warn-ink);">Kitchen upgrade needed</div>
+            <div style="font-size:14px;color:var(--warn-ink);margin-top:4px;">The database doesn't have the kitchen tables yet. Run <strong>kitchen_upgrade_v1.sql</strong> in the Supabase SQL editor, then reload.</div>
+          </div>
+        </div>`;
+      }
+      const gt = currentGroceryTurn();
+      if (!gt) return '<div class="boot">No grocery schedule yet.</div>';
+      const myId = myFlatmateId();
+      const o = turnAssignee(gt);
+      const meta = groStatusMeta();
+      const due = kitchenDue();
+      const canAct = canManageTurn(gt);
+      const dl = daysLeft(gt);
+      const needed = neededKitchenItems();
+      const boughtRecent = state.kitchen.filter(i => i.status === 'bought').slice(-6).reverse();
+      const note = turnSwapNote(gt);
+      const today = todayIso(), tomorrow = tomorrowIso();
+      const menuTomorrow = menuTextFor(tomorrow);
+      const eveningNoMenu = !menuTomorrow && new Date().getHours() >= 18;
+
+      let html = '';
+
+      if (due.level === 'overdue') {
+        html += `
+        <div class="banner-warn" style="background:var(--danger-soft);border-color:var(--danger-border);">
+          <div style="font-size:20px;line-height:1;">🛒</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:var(--danger-ink);">Groceries missing</div>
+            <div style="font-size:14px;color:var(--danger-ink);margin-top:4px;">${due.items.length} item${due.items.length === 1 ? '' : 's'} ${esc(due.label)} — the maid can't count on ${due.items.length === 1 ? 'it' : 'them'}. Use the nudge button below.</div>
+          </div>
+        </div>`;
+      }
+
+      html += `
+      <div class="card shadow hero" style="--pc:${o.color};">
+        <div class="hero-glow"></div>
+        <div class="hero-top">
+          <div class="kicker">Kitchen · ${gt.rangeLabel}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${myId === activeAssigneeId(gt) ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink);">Your duty</div>' : ''}
+            <div class="pill soft">${dl} day${dl === 1 ? '' : 's'} left</div>
+            ${pill(meta)}
+          </div>
+        </div>
+        <div class="hero-main">
+          <div class="avatar hero-av" style="background:${o.color}">${esc(initials(o.name))}</div>
+          <div style="flex:1;min-width:150px;">
+            <div class="hero-name">${esc(o.name)}</div>
+            <div class="hero-sub">Grocery owner this week — every needed item is theirs by default</div>
+            ${note ? `<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">${esc(note)}</div>` : ''}
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="btn wa lg" data-action="send-maid">🍳 Send tomorrow&#39;s menu</button>
+          <button class="btn lg" data-action="share-kitchen">📲 Share with flat</button>
+          ${due.level !== 'ok' ? `<button class="btn danger-outline" data-action="nudge-grocery">⚠️ Nudge owner</button>` : ''}
+          ${canAct && !(gt.swap && gt.swap.type === 'skip') ? `<button class="btn ghost" data-action="gro-skip">I'm away</button>` : ''}
+        </div>
+        <div class="msg-preview" title="Live preview of the maid message"><strong style="color:var(--ink-3);font-size:11px;letter-spacing:.05em;">MESSAGE TO MAID · SEND TONIGHT</strong>\n${esc(maidMessage())}</div>
+      </div>`;
+
+      const owedG = state.makeup.filter(m => !m.resolved && m.kind === 'grocery');
+      if (owedG.length) {
+        html += `
+        <div class="card" style="padding:20px 24px;">
+          <div class="kicker" style="margin-bottom:14px;">Grocery makeup owed</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${owedG.map(m => {
+              const f = findFlatmate(m.person_id);
+              return `
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                ${av(f, 32, 12)}
+                <div style="flex:1;font-size:14px;color:var(--ink-2);min-width:180px;"><strong>${esc(f.name)}</strong> skipped grocery duty ${esc(m.week_label)} — owes a makeup week</div>
+                <button class="btn sm primary" data-action="gro-accept-makeup" data-id="${esc(m.id)}">Accept &amp; take next week</button>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }
+
+      const ch = chapatiTotal(tomorrow);
+      const meKitchen = myId && isKitchenMate(myId);
+      const myCh = meKitchen ? chapatiCountFor(tomorrow, myId) : null;
+      const myDef = meKitchen ? chapatiDefaults()[myId] : null;
+      html += `
+      <div class="card" style="padding:24px 28px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <div class="kicker">Tomorrow's food</div>
+          <div style="font-size:12px;color:var(--ink-3);">${new Date(tomorrow + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+        </div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:12px;">One dish per line, then tap Save. Send the message to the maid tonight for tomorrow's cooking.</div>
+        ${eveningNoMenu ? `<div style="font-size:12px;color:var(--warn-ink);background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:10px;padding:8px 12px;margin-bottom:10px;">No food set for tomorrow yet — the maid won't know what to cook. Add it before tonight.</div>` : ''}
+        <div class="saved-menu" id="saved-menu">
+          ${menuTomorrow
+            ? `<span class="saved-dot" aria-hidden="true"></span><div><div class="saved-label">Saved</div><div class="saved-text">${esc(menuTomorrow).replace(/\n/g, ' · ')}</div></div>`
+            : `<span class="saved-dot empty" aria-hidden="true"></span><div><div class="saved-label">Nothing saved yet</div><div class="saved-text" style="color:var(--ink-4);">The maid message will say "cook the usual".</div></div>`}
+        </div>
+        <textarea class="input" id="menu-${tomorrow}" data-menu-date="${tomorrow}" rows="3" placeholder="e.g. dal chawal&#10;bhindi fry" style="resize:vertical;line-height:1.6;">${esc(menuTomorrow)}</textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn primary sm" id="menu-save" data-action="save-menu" data-date="${tomorrow}" disabled>Save</button>
+          <div id="menu-dirty" style="font-size:12px;color:var(--ink-4);">No unsaved changes</div>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div class="kicker">Chapatis · tomorrow</div>
+            <div style="font-size:26px;font-weight:800;line-height:1.3;">🫓 ${ch.total}</div>
+            <div style="font-size:12px;color:var(--ink-3);">${ch.setCount} of ${kitchenMates().length} kitchen members counted</div>
+          </div>
+          ${meKitchen ? `
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:13px;font-weight:600;color:var(--ink-2);">Yours</div>
+              <button class="btn sm" data-action="chap-set" data-delta="-1" style="width:44px;" ${myCh.n <= 0 ? 'disabled' : ''}>−</button>
+              <div style="font-size:18px;font-weight:800;min-width:26px;text-align:center;">${myCh.n}</div>
+              <button class="btn sm" data-action="chap-set" data-delta="1" style="width:44px;">＋</button>
+            </div>
+            <div style="font-size:11px;color:var(--ink-3);">${myCh.from === 'default' ? 'Using your daily default' : (myCh.from === 'unset' ? 'Not counted yet — tap ＋ (0 = not eating)' : (myDef != null ? 'Daily default: ' + myDef : ''))}</div>
+            ${myCh.from === 'set' && Number(myDef) !== myCh.n ? `<button class="btn xs" data-action="chap-default">Save ${myCh.n} as my daily default</button>` : ''}
+          </div>` : '<div style="font-size:12px;color:var(--ink-3);max-width:200px;">Each flatmate sets their own count (or a daily default) — only the total is shown.</div>'}
+        </div>
+      </div>`;
+
+      html += `
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
+          <div style="font-size:18px;font-weight:700;">Grocery list</div>
+          <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Items for tomorrow are due tonight by <strong>22:00</strong>. Default owner: ${esc(o.name)}.</div>
+          <form id="kitchen-add-form" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <input class="input" id="ki-name" placeholder="Add an item, e.g. oil 1L" style="flex:1;min-width:150px;" maxlength="80">
+            <select class="input" id="ki-for" style="width:auto;flex-shrink:0;">
+              <option value="tomorrow">For tomorrow</option>
+              <option value="today">For today</option>
+            </select>
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+        </div>
+        ${needed.length === 0 ? '<div class="boot" style="padding:28px 0;">Nothing needed right now 🎉</div>' : ''}
+        ${needed.map(i => {
+          const f = findFlatmate(i.owner_id);
+          const dueChip = i.needed_for <= today
+            ? '<div class="due-chip" style="background:var(--danger-soft);color:var(--danger-ink);">for today</div>'
+            : (i.needed_for === tomorrow
+              ? '<div class="due-chip" style="background:var(--warn-soft);color:var(--warn-ink);">for tomorrow</div>'
+              : `<div class="due-chip" style="background:var(--surface-2);color:var(--ink-3);">${fmtDate(i.needed_for)}</div>`);
+          return `
+          <div class="gro-row">
+            <div style="flex:1;min-width:130px;">
+              <div style="font-size:14px;font-weight:600;">${esc(i.name)}</div>
+              <div style="font-size:12px;color:var(--ink-3);">added by ${esc(i.added_by || '?')}</div>
+            </div>
+            ${dueChip}
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;" title="${i.helped ? 'Helping out (took it over)' : 'On duty — owns it by default'}">
+              ${av(f, 24, 10)}
+              <div style="font-size:12px;font-weight:600;color:var(--ink-2);">${esc(f.name)}${i.helped ? ' · helping' : ''}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              ${meKitchen && myId !== i.owner_id ? `<button class="btn xs" data-action="item-take" data-id="${esc(i.id)}">I'll bring it</button>` : ''}
+              ${canManageItem(i) ? `<button class="btn xs primary" data-action="item-bought" data-id="${esc(i.id)}">Bought ✓</button>` : ''}
+              ${canManageItem(i) ? `<button class="btn xs" data-action="item-remove" data-id="${esc(i.id)}" title="Remove item">×</button>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+        ${boughtRecent.length ? `
+        <div style="padding:14px 24px;background:var(--surface-2);border-top:1px solid var(--border-soft);">
+          <div class="kicker" style="margin-bottom:8px;">Recently bought</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${boughtRecent.map(i => `<div class="task-chip" style="background:var(--surface);">✓ ${esc(i.name)} · ${esc(findFlatmate(i.owner_id).name)}</div>`).join('')}
+          </div>
+        </div>` : ''}
+      </div>`;
+
+      const gNextIdx = state.gturns.findIndex(t => t.id === gt.id);
+      const gNext = state.gturns[gNextIdx + 1];
+      if (gNext) {
+        const gn = turnAssignee(gNext);
+        html += `
+      <div class="card" style="padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="kicker" style="margin-bottom:6px;">Kitchen · up next · ${gNext.rangeLabel}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${av(gn, 36, 14)}
+            <div style="font-size:16px;font-weight:600;">${esc(gn.name)}</div>
+          </div>
+        </div>
+      </div>`;
+      }
+
+      const gs = computeGroStats();
+      html += `
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:16px;">Groceries brought</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          ${kitchenMates().map(f => `
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:88px;font-size:13px;font-weight:600;flex-shrink:0;">${esc(f.name)}</div>
+            <div class="bar-track">
+              <div style="display:flex;height:100%;width:${Math.round((gs.totals[f.id] / gs.maxT) * 100)}%;border-radius:100px;overflow:hidden;">
+                <div style="background:${f.color};width:${gs.totals[f.id] ? Math.round((gs.dutyN[f.id] / gs.totals[f.id]) * 100) : 0}%;"></div>
+                <div style="background:${f.color};opacity:0.45;flex:1;"></div>
+              </div>
+            </div>
+            <div style="width:120px;font-size:12px;color:var(--ink-3);text-align:right;flex-shrink:0;"><strong style="color:var(--ink);">${gs.totals[f.id]}</strong> · ${gs.dutyN[f.id]} duty / ${gs.helpedN[f.id]} helped</div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--ink-4);">Solid = bought while on duty · faded = helped out on someone else's week.</div>
+      </div>`;
+      return html;
+    }
+
+    function renderAdmin() {
+      if (!isAdmin()) return '<div class="boot">Admins only.</div>';
+      const pd = periodDays();
+      const opts = [[2, 'Every 2 days'], [3, 'Every 3 days'], [7, 'Weekly']];
+      return `
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:6px;">Rotation period</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">How long each person's turn lasts. Changing this regenerates all <strong>upcoming</strong> turns — completed history is kept.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          ${opts.map(([d, l]) => `<button class="period-opt ${pd === d ? 'sel' : ''}" data-action="pick-period" data-days="${d}">${l}</button>`).join('')}
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input class="input" id="custom-days" type="number" min="1" max="60" placeholder="Custom" style="width:90px;padding:9px 10px;">
+            <button class="btn sm" data-action="pick-period-custom">Set days</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:10px;">Current: <strong>${periodLabel()}</strong></div>
+        ${state.periodConfirm ? `
+        <div class="strip yellow">
+          <div style="font-size:13px;color:var(--warn-ink);">Change rotation to <strong>every ${state.periodConfirm} day${state.periodConfirm === 1 ? '' : 's'}</strong>? All upcoming turns will be regenerated from tomorrow.</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn sm" data-action="cancel-period">Cancel</button>
+            <button class="btn sm primary" data-action="confirm-period">Confirm change</button>
+          </div>
+        </div>` : ''}
+      </div>
+
+      ${(() => {
+        const curStartDay = state.settings.start_weekday != null ? Number(state.settings.start_weekday)
+          : (state.turns.length ? new Date(state.turns[0].start_date + 'T00:00:00').getDay() : 6);
+        const order = [0, 1, 2, 3, 4, 5, 6]; // Sun-first
+        const preview = (() => {
+          if (state.startDayConfirm === null) return '';
+          const today = new Date(); today.setHours(0,0,0,0);
+          let off = daysUntilWeekday(today, state.startDayConfirm); if (off === 0) off = 7;
+          const ns = addDays(today, off);
+          return fmtDate(ns);
+        })();
+        return `
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:6px;">Week starts on</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Which day each turn begins. Realigning ends the current turn the day before, then starts the next person on your chosen day. <strong>Completed history is never changed.</strong></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${order.map(d => `<button class="period-opt ${curStartDay === d && state.startDayConfirm === null ? 'sel' : ''} ${state.startDayConfirm === d ? 'sel' : ''}" data-action="pick-start-day" data-day="${d}">${WEEKDAYS[d].slice(0,3)}</button>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:10px;">Currently starts on <strong>${WEEKDAYS[curStartDay]}s</strong>.</div>
+        ${state.startDayConfirm !== null ? `
+        <div class="strip yellow">
+          <div style="font-size:13px;color:var(--warn-ink);">Realign to <strong>${WEEKDAYS[state.startDayConfirm]}-to-${WEEKDAYS[state.startDayConfirm]}</strong>? The current turn ends ${preview ? '<strong>' + fmtDate(addDays(new Date(preview),-1)) + '</strong>' : 'the day before'}, and the next person starts <strong>${preview}</strong>. Past turns stay as they are.</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn sm" data-action="cancel-start-day">Cancel</button>
+            <button class="btn sm primary" data-action="confirm-start-day">Confirm realign</button>
+          </div>
+        </div>` : ''}
+      </div>`;
+      })()}
+
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:6px;">Kitchen members</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Who eats from the kitchen. Only members (and admins) see the Kitchen tab, get grocery duty, and count for chapatis. Toggling regenerates upcoming grocery weeks.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${state.flatmates.map(f => `
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
+            ${av(f, 30, 11)}
+            <div style="flex:1;min-width:120px;">
+              <div style="font-size:14px;font-weight:600;">${esc(f.name)}</div>
+              <div style="font-size:12px;color:${f.in_kitchen !== false ? 'var(--success-ink)' : 'var(--ink-4)'};">${f.in_kitchen !== false ? 'In the kitchen' : 'Eats outside — excluded'}</div>
+            </div>
+            <button class="btn xs ${f.in_kitchen !== false ? 'danger-outline' : 'primary'}" data-action="toggle-kitchen-member" data-id="${f.id}">${f.in_kitchen !== false ? 'Remove from kitchen' : 'Add to kitchen'}</button>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:14px;">Users &amp; passwords</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          ${state.users.map(u => {
+            const f = u.flatmate_id ? findFlatmate(u.flatmate_id) : null;
+            return `
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
+              ${f ? av(f, 30, 11) : '<div class="avatar" style="width:30px;height:30px;font-size:11px;background:var(--accent)">A</div>'}
+              <div style="flex:1;min-width:120px;">
+                <div style="font-size:14px;font-weight:600;">${esc(u.username)} ${u.is_admin ? '<span class="badge" style="background:var(--accent-soft);color:var(--accent-ink);">ADMIN</span>' : ''}</div>
+                <div style="font-size:12px;color:var(--ink-3);">${f ? esc(f.name) : 'Not linked to a flatmate'}</div>
+              </div>
+              <button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>
+              ${u.id !== state.user.id ? `<button class="btn xs" data-action="toggle-user-admin" data-id="${u.id}">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
+              ${u.id !== state.user.id ? `<button class="btn xs danger-outline" data-action="delete-user" data-id="${u.id}">Delete</button>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="kicker" style="margin-bottom:4px;">Add user</div>
+        <form id="user-form">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;">
+            <div><label class="fld" for="nu-username">Username</label><input class="input" id="nu-username" autocapitalize="none" required></div>
+            <div><label class="fld" for="nu-password">Password</label><input class="input" id="nu-password" type="text" required></div>
+            <div><label class="fld" for="nu-flatmate">Flatmate</label>
+              <select class="input" id="nu-flatmate">
+                <option value="">— none (admin only) —</option>
+                ${state.flatmates.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding-bottom:10px;">
+              <input type="checkbox" id="nu-admin" style="width:16px;height:16px;">
+              <label for="nu-admin" style="font-size:13px;font-weight:600;color:var(--ink-2);">Admin</label>
+            </div>
+            <button class="btn primary" type="submit" style="height:44px;">Add user</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:14px;">App settings</div>
+        <form id="settings-form">
+          <label class="fld" for="set-name">App name (e.g. "Azizbagh Ghar")</label>
+          <input class="input" id="set-name" value="${esc(appName())}">
+          <label class="fld" for="set-url">App link (included in WhatsApp messages)</label>
+          <input class="input" id="set-url" placeholder="https://your-site.netlify.app" value="${esc(state.settings.app_url || '')}">
+          <label class="fld" for="set-tasks">Tasks (comma-separated)</label>
+          <textarea class="input" id="set-tasks" rows="2">${esc(state.settings.tasks || DEFAULT_TASKS)}</textarea>
+          <button class="btn primary" type="submit" style="margin-top:14px;">Save settings</button>
+        </form>
+      </div>
+
+      <div class="card" style="padding:20px 24px;">
+        <div class="kicker" style="margin-bottom:12px;">Audit log</div>
+        ${!state.auditLoaded ? '<div style="font-size:13px;color:var(--ink-3);">Loading…</div>' : state.auditError ? `<div style="font-size:13px;color:var(--danger-ink);">${esc(state.auditError)}</div>` : state.audit.length === 0 ? '<div style="font-size:13px;color:var(--ink-3);">Nothing yet.</div>' : ''}
+        <div style="display:flex;flex-direction:column;">
+          ${state.audit.map(x => `
+          <div class="audit-row">
+            <span class="audit-dot" style="background:${auditDot(x.action)}"></span>
+            <div style="flex:1;">${esc(x.action)}</div>
+            <div class="audit-ts">${fmtDateTime(x.ts)}</div>
+          </div>`).join('')}
+        </div>
+        ${state.auditLoaded && state.audit.length ? '<div style="font-size:12px;color:var(--ink-4);margin-top:12px;">Actions done on behalf of a flatmate show as "name (for name)". Showing the last 30 entries.</div>' : ''}
+      </div>`;
+    }
+
+    function renderModals() {
+      let html = '';
+      const cur = state.turns[currentTurnIndex()];
+
+      if (state.swapModalOpen && cur) {
+        const a = turnAssignee(cur);
+        html += `
+        <div class="modal-overlay" data-dismiss="close-swap">
+          <div class="modal">
+            <h2>Request a swap</h2>
+            <div class="desc">${esc(a.name)} wants someone else to cover ${cur.rangeLabel}.</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+              ${state.flatmates.filter(f => f.id !== activeAssigneeId(cur)).map(f => `
+              <div class="cand" data-action="select-swap-target" data-id="${f.id}" style="${state.swapTargetId === f.id ? `border-color:${f.color};background:var(--accent-soft);` : ''}">
+                ${av(f, 34, 13)}
+                <div class="nm">${esc(f.name)}</div>
+              </div>`).join('')}
+            </div>
+            <div class="modal-actions">
+              <button class="btn sm" data-action="close-swap">Cancel</button>
+              <button class="btn sm primary" data-action="confirm-swap" ${state.swapTargetId ? '' : 'disabled'}>Send request</button>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      if (state.skipConfirmOpen && cur) {
+        const a = turnAssignee(cur);
+        const nxt = nextFlatmateAfter(cur.assignee_id);
+        html += `
+        <div class="modal-overlay" data-dismiss="cancel-skip">
+          <div class="modal">
+            <h2>Mark yourself away?</h2>
+            <div class="desc">${esc(a.name)} won't be around this turn. <strong>${esc(nxt.name)}</strong> will cover the cleaning, and ${esc(a.name)} will owe a makeup cleaning when back.</div>
+            <div class="modal-actions">
+              <button class="btn sm" data-action="cancel-skip">Cancel</button>
+              <button class="btn sm primary" data-action="confirm-skip">Confirm — I'm away</button>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      if (state.gSkipConfirmOpen) {
+        const gt = currentGroceryTurn();
+        if (gt) {
+          const a = turnAssignee(gt);
+          const nxt = nextKitchenMateAfter(gt.assignee_id) || a;
+          html += `
+        <div class="modal-overlay" data-dismiss="gro-skip-cancel">
+          <div class="modal">
+            <h2>Away for grocery duty?</h2>
+            <div class="desc">${esc(a.name)} won't be around this week. <strong>${esc(nxt.name)}</strong> will cover grocery duty (this week's still-needed items move to them), and ${esc(a.name)} will owe a makeup week when back.</div>
+            <div class="modal-actions">
+              <button class="btn sm" data-action="gro-skip-cancel">Cancel</button>
+              <button class="btn sm primary" data-action="gro-skip-confirm">Confirm — I'm away</button>
+            </div>
+          </div>
+        </div>`;
+        }
+      }
+
+      if (state.changePassOpen) {
+        html += renderChangePassword(false);
+      }
+
+      if (state.lightbox) {
+        html += `
+        <div class="lightbox" data-action="close-photo">
+          <img src="${state.lightbox}" alt="Cleaning photo">
+        </div>`;
+      }
+      return html;
+    }
+
+    function render() {
+      // Never repaint over in-progress typing: background refreshes (realtime, timers)
+      // wait until the field blurs — the blur itself triggers a save + fresh render.
+      const ae = document.activeElement;
+      if (ae && (ae.dataset && ae.dataset.menuDate || ae.id === 'ki-name') && ae.value !== undefined && state.user) return;
+      const app = document.getElementById('app');
+      if (!state.ready) { app.innerHTML = '<div class="boot"><div class="spinner"></div>Loading…</div>'; return; }
+      if (!state.user) { app.innerHTML = (state.errorMsg ? `<div class="banner-warn" style="margin-bottom:8px;"><div>⚠️</div><div style="font-size:14px;color:var(--warn-ink);">${esc(state.errorMsg)}</div></div>` : '') + renderLogin(); return; }
+      if (state.user.must_change) { app.innerHTML = renderChangePassword(true); return; }
+      let html = renderHeader();
+      if (!CONFIGURED) {
+        html += `<div class="banner-setup">🔌 <strong>Demo mode</strong> — data is saved only on this device. To share it with all flatmates, connect the free Supabase database (see README.md) and redeploy.</div>`;
+      }
+      if (state.errorMsg) {
+        html += `<div class="banner-warn"><div style="font-size:20px;line-height:1;">⚠️</div><div style="font-size:14px;color:var(--warn-ink);">${esc(state.errorMsg)}</div></div>`;
+      }
+      if (state.kitchenFlagMissing) {
+        html += `<div class="banner-warn"><div style="font-size:20px;line-height:1;">🗄️</div><div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;color:var(--warn-ink);">Kitchen membership not visible to the app</div>
+          <div style="font-size:14px;color:var(--warn-ink);margin-top:4px;">The <strong>in_kitchen</strong> column isn't coming back from the API, so everyone counts as a kitchen member. Run <strong>ghar_setup_v3.7.sql</strong>, then run <code style="background:var(--surface-2);padding:1px 5px;border-radius:5px;">notify pgrst, 'reload schema';</code> in the Supabase SQL editor and reload this page.</div>
+        </div></div>`;
+      }
+      if (!state.flatmates.length) {
+        html += `<div class="banner-warn" style="background:var(--danger-soft);border-color:var(--danger-border);"><div style="font-size:20px;line-height:1;">⚠️</div><div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;color:var(--danger-ink);">No flatmates in the database</div>
+          <div style="font-size:14px;color:var(--danger-ink);margin-top:4px;">The <strong>flatmates</strong> table is empty, so there's nobody to schedule. Add rows to it in Supabase (see README.md), then reload.</div>
+        </div></div>`;
+      }
+      if (!state.turns.length) {
+        html += '<div class="boot">No schedule data yet.</div>';
+      } else if (state.tab === 'kitchen' && !canSeeKitchen()) { state.tab = 'dashboard'; html += renderDashboard(); }
+      else if (state.tab === 'dashboard') html += renderDashboard();
+      else if (state.tab === 'kitchen') html += renderKitchen();
+      else if (state.tab === 'schedule') html += renderSchedule();
+      else if (state.tab === 'history') html += renderHistory();
+      else if (state.tab === 'admin') html += renderAdmin();
+      html += renderModals();
+      app.innerHTML = html;
+    }
+
+    /* ================= boot ================= */
+    (async function boot() {
+      try {
+        store = (CONFIGURED && window.supabase) ? new SupaStore() : new LocalStore();
+        await store.init();
+        applyData(await store.fetchAll());
+        await migrateAppName();
+        if (await ensureTurnsCover()) applyData(await store.fetchAll());
+        if (await ensureGroceryCover()) applyData(await store.fetchAll());
+        if (await healOrphanItems()) applyData(await store.fetchAll());
+        store.onChange(() => refresh());
+      } catch (e) {
+        store = new LocalStore();
+        await store.init();
+        applyData(await store.fetchAll());
+        await migrateAppName();
+        if (await ensureTurnsCover()) applyData(await store.fetchAll());
+        if (await ensureGroceryCover()) applyData(await store.fetchAll());
+        state.errorMsg = 'Could not reach the database (' + (e.message || e) + '). Running in on-device demo mode.';
+      }
+      const tok = localStorage.getItem('f6_token');
+      if (tok) {
+        try {
+          const u = await store.me(tok);
+          if (u) {
+            state.user = u; state.session = tok;
+            if (u.is_admin) { try { state.users = await store.listUsers(tok); } catch (_) { state.users = []; } }
+          } else localStorage.removeItem('f6_token');
+        } catch (_) { localStorage.removeItem('f6_token'); }
+      }
+      localStorage.removeItem('f6_session'); // old insecure session id, no longer used
+      state.ready = true;
+      render();
+      setInterval(render, 10 * 60 * 1000);
+    })();
+
+    /* ---- UI polish: sticky-bar shadow, scroll-to-top, sliding tab underline ---- */
+    (function uiChrome() {
+      const toTop = document.getElementById('to-top');
+      if (toTop) toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      let ticking = false;
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = window.scrollY || 0;
+          const bar = document.getElementById('tabbar');
+          // .stuck (border + shadow) engages once the bar has actually reached the top edge
+          if (bar) {
+            const top = bar.getBoundingClientRect().top;
+            bar.classList.toggle('stuck', top <= 0.5);
+          }
+          if (toTop) toTop.classList.toggle('show', y > 320);
+          ticking = false;
+        });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      onScroll();
+
+      // Sliding underline under the active tab — positioned to the active pill after each render.
+      const place = () => {
+        const bar = document.getElementById('tabbar');
+        if (!bar) return;
+        const tabs = bar.querySelector('.tabs');
+        const active = bar.querySelector('.tab.active');
+        if (!tabs || !active) return;
+        let ink = bar.querySelector('.tab-ink');
+        if (!ink) {
+          ink = document.createElement('div');
+          ink.className = 'tab-ink';
+          ink.style.cssText = 'position:absolute;height:2.5px;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2));bottom:-1px;transition:left .25s cubic-bezier(.2,.8,.3,1),width .25s cubic-bezier(.2,.8,.3,1);pointer-events:none;';
+          tabs.style.position = 'relative';
+          tabs.appendChild(ink);
+        }
+        ink.style.left = (active.offsetLeft + 8) + 'px';
+        ink.style.width = (active.offsetWidth - 16) + 'px';
+      };
+      // Re-place underline AND re-check scroll state after every render (render() replaces
+      // #app innerHTML; content height changes, so a stale .show/.stuck must be recomputed).
+      const obs = new MutationObserver(() => requestAnimationFrame(() => { place(); onScroll(); }));
+      const appEl = document.getElementById('app');
+      if (appEl) obs.observe(appEl, { childList: true, subtree: true });
+      requestAnimationFrame(place);
+    })();
+    /* v3.9 — Liquid Glass mode (opt-in, prism icon in header): ambient animated colour-gradient
+       background with floating blobs; every surface becomes translucent frosted glass with a
+       top-edge highlight; accent buttons stay vivid. Persists like the theme. Off by default.
+       v3.8 — UI polish: sticky frosted tab bar (brand scrolls away, tabs stay), sliding gradient
+       underline on the active tab, scroll-to-top button, staggered card entrance + hover lift.
+       v3.7.2 — Self-healing rosters (real bug): ensureGroceryCover only ever CREATED missing
+       grocery weeks, so a week stored before someone left the kitchen kept naming them as
+       grocery owner forever — no reload or SQL fixed it. Current/future weeks whose assignee
+       isn't a kitchen member are now reassigned on load; orphaned grocery items move to the
+       duty owner. Past weeks are left as they actually happened.
+       v3.7.1 — Data integrity: removed the silent DEFAULT_FLATMATES fallback (it substituted
+       hardcoded people when the DB returned none, hiding real setup problems); the app now
+       warns loudly when the flatmates table is empty, or when in_kitchen isn't reaching the
+       API (stale PostgREST schema cache — everyone wrongly counts as a kitchen member).
+       v3.7 — Night-before flow: food board is tomorrow-only with an explicit Save button and a
+       'Saved' line showing what's committed; the maid message ("Kal ka khana") reads
+       tomorrow's menu, chapatis and grocery items throughout — consistent with the 22:00
+       deadline. Sending is blocked while a draft is unsaved.
+       v3.6.1 — Food board fix: today's menu is now editable (it was tomorrow-only, so 'aaj ka
+       khana' could never be set same-day); in-progress edits flush before composing any message;
+       background refreshes no longer repaint over mid-typing.
+       v3.6 — Home overview: Dashboard covers both duties (kitchen snapshot card with maid send,
+       members only), 'Your turn'/'Your duty' pills, scoped labels (Cleaning ·, Kitchen ·),
+       kitchen up-next card — both rotations now share the same visual grammar.
+       v3.5.1 — UI polish: house logo mark, gradient primary buttons, scrollable mobile tabs,
+       self-migrating rename (stored 'Flat 6 Cleaners' → 'Ghar').
+       v3.5 — Ghar: renamed from Flat 6 Cleaners; kitchen membership (admin-managed in_kitchen flag,
+       members-only Kitchen tab, grocery rotation/chapatis/fairness over kitchen roster only —
+       Zakariya excluded by default). Kitchen v1: grocery duty rotation with I'm-away/makeup,
+       default item ownership + takeovers, food board, 22:00 deadlines, maid-message composer. */
+</script>
+</body>
+</html>
