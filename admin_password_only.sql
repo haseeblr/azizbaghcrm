@@ -65,6 +65,10 @@ begin
 
   -- only admins have passwords; flatmates are let in on their username
   if u.is_admin then
+    -- no password sent yet: tell the login page to open the password box
+    if p_password is null or p_password = '' then
+      return json_build_object('password_required', true);
+    end if;
     if not _password_ok(u, p_password) then
       insert into login_attempts(username) values (p_username);
       return json_build_object('error', 'Wrong username or password');
