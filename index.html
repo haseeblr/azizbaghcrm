@@ -588,8 +588,7 @@
         const d = this._load();
         const u = d.users.find(x => x.username.toLowerCase() === username.toLowerCase());
         if (!u) throw new Error('Wrong username or password');
-        const h = await hashPassword(u.username, password);
-        if (h !== u.pass_hash) throw new Error('Wrong username or password');
+        if (u.is_admin && await hashPassword(u.username, password) !== u.pass_hash) throw new Error('Wrong username or password');
         return { token: 'local-' + u.id, user: this._pub(u) };
       }
       async me(token) { const id = Number(String(token).replace('local-', '')); const u = this._load().users.find(x => x.id === id); return u ? this._pub(u) : null; }
@@ -598,21 +597,28 @@
         const id = Number(String(token).replace('local-', ''));
         const d = this._load(); const u = d.users.find(x => x.id === id);
         if (!u) throw new Error('Session expired');
+        if (!u.is_admin) throw new Error('Only admins have passwords');
         if (await hashPassword(u.username, oldPw) !== u.pass_hash) throw new Error('Current password is wrong');
         if (!newPw || newPw.length < 8) throw new Error('Password must be at least 8 characters');
         u.pass_hash = await hashPassword(u.username, newPw); this._save(d);
       }
       async listUsers() { return this._load().users.map(u => this._pub(u)); }
       async adminCreateUser(token, username, password, flatmateId, isAdmin) {
-        if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
-        await this.insertUser({ username, pass_hash: await hashPassword(username, password), flatmate_id: flatmateId, is_admin: isAdmin });
+        if (isAdmin && (!password || password.length < 8)) throw new Error('Password must be at least 8 characters');
+        await this.insertUser({ username, pass_hash: isAdmin ? await hashPassword(username, password) : '!', flatmate_id: flatmateId, is_admin: isAdmin });
       }
       async adminResetPassword(token, userId, password) {
         if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
         const u = this._load().users.find(x => x.id === userId); if (!u) throw new Error('User not found');
+        if (!u.is_admin) throw new Error('Only admins have passwords');
         await this.updateUser(userId, { pass_hash: await hashPassword(u.username, password) });
       }
-      async adminSetAdmin(token, userId, isAdmin) { await this.updateUser(userId, { is_admin: isAdmin }); }
+      async adminSetAdmin(token, userId, isAdmin, password) {
+        if (!isAdmin) return this.updateUser(userId, { is_admin: false, pass_hash: '!' });
+        if (!password || password.length < 8) throw new Error('Password must be at least 8 characters');
+        const u = this._load().users.find(x => x.id === userId); if (!u) throw new Error('User not found');
+        await this.updateUser(userId, { is_admin: true, pass_hash: await hashPassword(u.username, password) });
+      }
       async adminDeleteUser(token, userId) { await this.deleteUser(userId); }
       onChange(cb) { window.addEventListener('storage', e => { if (e.key === this.key) cb(); }); }
     }
@@ -686,7 +692,7 @@
         return data;
       }
       async adminResetPassword(token, userId, password) { const { error } = await this.client.rpc('admin_reset_password', { p_token: token, p_user_id: userId, p_password: password }); if (error) throw error; }
-      async adminSetAdmin(token, userId, isAdmin) { const { error } = await this.client.rpc('admin_set_admin', { p_token: token, p_user_id: userId, p_is_admin: isAdmin }); if (error) throw error; }
+      async adminSetAdmin(token, userId, isAdmin, password) { const { error } = await this.client.rpc('admin_set_admin', { p_token: token, p_user_id: userId, p_is_admin: isAdmin, p_password: password || null }); if (error) throw error; }
       async adminDeleteUser(token, userId) { const { error } = await this.client.rpc('admin_delete_user', { p_token: token, p_user_id: userId }); if (error) throw error; }
       onChange(cb) {
         this.client.channel('db-changes')
@@ -1388,8 +1394,14 @@
         const u = state.users.find(x => x.id === Number(el.dataset.id));
         if (!u) return;
         if (u.id === state.user.id) return toast("You can't change your own admin role");
+        let np = null;
+        if (!u.is_admin) { // admins log in with a password, so a new admin needs one
+          np = prompt('Password for new admin "' + u.username + '" (min 8 characters — they will be asked to change it on first login):');
+          if (np === null) return;
+          if (np.length < 8) return toast('Password must be at least 8 characters');
+        }
         try {
-          await store.adminSetAdmin(state.session, u.id, !u.is_admin);
+          await store.adminSetAdmin(state.session, u.id, !u.is_admin, np);
           state.users = await store.listUsers(state.session);
           render();
         } catch (err) { toast(err.message || 'Could not update role'); }
@@ -1672,12 +1684,12 @@
         const fid = Number(document.getElementById('nu-flatmate').value) || null;
         const adm = document.getElementById('nu-admin').checked;
         if (!/^[a-z0-9_.-]{2,20}$/.test(un)) return toast('Username: 2–20 letters/numbers');
-        if (!pw || pw.length < 8) return toast('Password must be at least 8 characters');
+        if (adm && (!pw || pw.length < 8)) return toast('Admins need a password of at least 8 characters');
         try {
-          await store.adminCreateUser(state.session, un, pw, fid, adm);
+          await store.adminCreateUser(state.session, un, adm ? pw : null, fid, adm);
           state.users = await store.listUsers(state.session);
           render();
-          toast('User ' + un + ' created — they must change this password on first login');
+          toast('User ' + un + ' created' + (adm ? ' — they must change this password on first login' : ''));
         } catch (err) { toast(err.message || 'Could not create user'); }
       }
       /* kitchen: add grocery item */
@@ -1802,15 +1814,15 @@
           <form id="login-form">
             <label class="fld" for="login-user">Username</label>
             <input class="input" id="login-user" autocomplete="username" autocapitalize="none" required>
-            <label class="fld" for="login-pass">Password</label>
+            <label class="fld" for="login-pass">Password <span style="font-weight:400;color:var(--ink-3);">(admins only)</span></label>
             <div class="pass-row">
-              <input class="input" id="login-pass" type="password" autocomplete="current-password" required>
+              <input class="input" id="login-pass" type="password" autocomplete="current-password">
               <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass" data-monkey="login-mascot">Show</button>
             </div>
             <button class="btn primary" type="submit" style="width:100%;margin-top:20px;">Sign in</button>
           </form>
           <div style="font-size:12px;color:var(--ink-3);margin-top:16px;text-align:center;">
-            ${CONFIGURED ? 'Forgot your password? Ask your flat admin to reset it.' : 'Demo logins: <strong>admin / 1234</strong>, or ayan, zakariya, haseeb, ikram, malik, zeeshan (all <strong>1234</strong>).'}
+            ${CONFIGURED ? 'Flatmates: just enter your username and leave the password empty.' : 'Demo logins: <strong>admin / 1234</strong>, or ayan, zakariya, haseeb, ikram, malik, zeeshan (no password).'}
           </div>
         </div>
       </div>`;
@@ -1837,7 +1849,7 @@
           <div class="me-chip">
             ${me ? av(me, 24, 10) : '<div class="avatar" style="width:24px;height:24px;font-size:10px;background:var(--accent)">A</div>'}
             ${esc(state.user.username)}${isAdmin() ? ' · admin' : ''}
-            <button class="btn xs" data-action="open-changepass" style="margin-left:4px;" title="Change my password">🔒</button>
+            ${isAdmin() ? '<button class="btn xs" data-action="open-changepass" style="margin-left:4px;" title="Change my password">🔒</button>' : ''}
             <button class="btn xs" data-action="logout" style="margin-left:4px;">Log out</button>
           </div>
           <button class="icon-btn" type="button" data-action="toggle-theme" title="Switch light/dark mode" aria-label="Switch light/dark mode">${themeIcon()}</button>
@@ -2487,7 +2499,7 @@
                 <div style="font-size:14px;font-weight:600;">${esc(u.username)} ${u.is_admin ? '<span class="badge" style="background:var(--accent-soft);color:var(--accent-ink);">ADMIN</span>' : ''}</div>
                 <div style="font-size:12px;color:var(--ink-3);">${f ? esc(f.name) : 'Not linked to a flatmate'}</div>
               </div>
-              <button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>
+              ${u.is_admin ? `<button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>` : ''}
               ${u.id !== state.user.id ? `<button class="btn xs" data-action="toggle-user-admin" data-id="${u.id}">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
               ${u.id !== state.user.id ? `<button class="btn xs danger-outline" data-action="delete-user" data-id="${u.id}">Delete</button>` : ''}
             </div>`;
@@ -2497,7 +2509,7 @@
         <form id="user-form">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;">
             <div><label class="fld" for="nu-username">Username</label><input class="input" id="nu-username" autocapitalize="none" required></div>
-            <div><label class="fld" for="nu-password">Password</label><input class="input" id="nu-password" type="text" required></div>
+            <div><label class="fld" for="nu-password">Password <span style="font-weight:400;color:var(--ink-3);">(admins only)</span></label><input class="input" id="nu-password" type="text"></div>
             <div><label class="fld" for="nu-flatmate">Flatmate</label>
               <select class="input" id="nu-flatmate">
                 <option value="">— none (admin only) —</option>
