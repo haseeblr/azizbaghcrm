@@ -16,7 +16,7 @@
         /* ============ design tokens ============ */
         :root {
             --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef0f4; --surface-3: #e3e6ec;
-            --ink: #171921; --ink-2: #3d4250; --ink-3: #697082; --ink-4: #9aa1b0;
+            --ink: #171921; --ink-2: #3d4250; --ink-3: #5f6578; --ink-4: #676e80;
             --border: #e4e7ec; --border-soft: #edeff3;
             --accent: #5560f0; --accent-2: #7e5cf0; --accent-hover: #4650dd; --accent-ink: #3f49cf; --accent-soft: #edeffe;
             --on-accent: #ffffff; --ring: rgba(85,96,240,.22);
@@ -24,7 +24,7 @@
             --success-soft: #e2f5e9; --success-ink: #1d7a44;
             --warn-soft: #fbf3de; --warn-ink: #8a6116; --warn-border: #efe0ba;
             --danger: #d64545; --danger-hover: #c23a3a; --danger-ink: #c03434; --danger-soft: #fdecec; --danger-border: #f3cdcd;
-            --wa: #25d366; --wa-hover: #1fb457;
+            --wa: #0f8344; --wa-hover: #0c6f39;
             --row-current: #f2f3fe;
             --toast-bg: #1c1f27; --toast-ink: #ffffff;
             --shadow-card: 0 1px 2px rgba(18,20,30,.04), 0 10px 30px rgba(18,20,30,.06);
@@ -33,7 +33,7 @@
         }
         [data-theme="dark"] {
             --bg: #0d0e12; --surface: #15171d; --surface-2: #1d2028; --surface-3: #272b35;
-            --ink: #f1f2f6; --ink-2: #c4c8d3; --ink-3: #8d93a3; --ink-4: #616879;
+            --ink: #f1f2f6; --ink-2: #c4c8d3; --ink-3: #9aa0af; --ink-4: #8b91a1;
             --border: #262a34; --border-soft: #1f222b;
             --accent: #7b85ff; --accent-2: #9d7ffb; --accent-hover: #8d96ff; --accent-ink: #a3aaff; --accent-soft: rgba(123,133,255,.14);
             --on-accent: #0e1020; --ring: rgba(123,133,255,.3);
@@ -41,7 +41,7 @@
             --success-soft: rgba(64,200,130,.14); --success-ink: #59d394;
             --warn-soft: rgba(235,185,90,.12); --warn-ink: #e0b45d; --warn-border: rgba(235,185,90,.28);
             --danger: #e15b5b; --danger-hover: #ea6d6d; --danger-ink: #f19a9a; --danger-soft: rgba(225,91,91,.13); --danger-border: rgba(225,91,91,.3);
-            --wa: #25d366; --wa-hover: #1da851;
+            --wa: #0f8344; --wa-hover: #0c6f39;
             --row-current: rgba(123,133,255,.09);
             --toast-bg: #f1f2f6; --toast-ink: #15171d;
             --shadow-card: 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.4);
@@ -282,6 +282,7 @@
         .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
         .fair-note { margin-top: 14px; font-size: 13px; color: var(--warn-ink); background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 12px; padding: 10px 14px; }
 
+        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .row { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
         .row .date { width: 100px; font-size: 13px; font-weight: 600; color: var(--ink-2); flex-shrink: 0; }
         .row .who { flex: 1; min-width: 100px; }
@@ -360,10 +361,12 @@
         @media (max-width: 680px) {
           .wrap { padding: 16px 10px 70px; }
           .header { flex-direction: column; align-items: stretch; }
-          .controls { justify-content: space-between; width: 100%; }
-          .tabs { width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+          .controls { justify-content: space-between; width: 100%; flex-wrap: nowrap; gap: 8px; }
+          .me-chip { flex: 1; min-width: 0; }
+          .me-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .tabs { width: 100%; gap: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
           .tabs::-webkit-scrollbar { display: none; }
-          .tab { flex: 1 0 auto; text-align: center; padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+          .tab { flex: 1 0 auto; text-align: center; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
           .tabbar { justify-content: stretch; margin: -4px -10px 0; padding: 8px 10px; }
           .to-top { right: 14px; bottom: 16px; }
           .brand { font-size: 20px; }
@@ -371,6 +374,8 @@
           .hero-name { font-size: 23px; }
           .hero-actions { width: 100%; }
           .hero-actions .btn { flex: 1 1 45%; padding: 12px 8px; }
+          .hero-actions .btn.lg { flex-basis: 100%; }
+          .row-actions { flex-basis: 100%; }
           .row { padding: 14px 14px; gap: 10px; }
           .row .date { width: 84px; font-size: 12px; }
           .gro-row { padding: 12px 14px; gap: 8px; }
@@ -380,6 +385,8 @@
         /* iOS Safari zooms in on focused fields under 16px and stays zoomed */
         @media (max-width: 680px), (pointer: coarse) {
           .input { font-size: 16px; }
+          .btn.xs { min-height: 36px; min-width: 36px; }
+          .btn.sm, .tab { min-height: 40px; }
         }
 
     </style>
@@ -716,7 +723,7 @@
       user: null, // logged-in user (public fields only — never any hash)
       session: null, // auth token; admin actions are verified server-side against it
       swapModalOpen: false, swapTargetId: null,
-      skipConfirmOpen: false, undoConfirmId: null, editTurnId: null,
+      skipConfirmOpen: false, undoConfirmId: null, editTurnId: null, showPastTurns: false,
       periodConfirm: null, // pending new period days awaiting confirm
       startDayConfirm: null, // pending new start weekday (0-6) awaiting confirm
       lightbox: null, // data URL of photo being viewed full-screen
@@ -1423,6 +1430,7 @@
           render();
         } catch (err) { toast(err.message || 'Could not delete user'); }
       },
+      'toggle-past-turns': () => { state.showPastTurns = !state.showPastTurns; render(); },
       'open-changepass': () => { state.changePassOpen = true; render(); },
       'close-changepass': () => { state.changePassOpen = false; render(); },
 
@@ -1849,7 +1857,7 @@
     function renderHeader() {
       const fid = myFlatmateId();
       const me = fid ? findFlatmate(fid) : null;
-      const tabDefs = [['dashboard', 'Dashboard']];
+      const tabDefs = [['dashboard', 'Home']];
       if (canSeeKitchen()) tabDefs.push(['kitchen', 'Kitchen']);
       tabDefs.push(['schedule', 'Schedule'], ['history', 'History']);
       if (isAdmin()) tabDefs.push(['admin', 'Admin']);
@@ -1866,7 +1874,7 @@
         <div class="controls">
           <div class="me-chip">
             ${me ? av(me, 24, 10) : '<div class="avatar" style="width:24px;height:24px;font-size:10px;background:var(--accent)">A</div>'}
-            ${esc(state.user.username)}${isAdmin() ? ' · admin' : ''}
+            <span class="me-name">${esc(state.user.username)}${isAdmin() && state.user.username !== 'admin' ? ' · admin' : ''}</span>
             ${isAdmin() ? '<button class="btn xs" data-action="open-changepass" style="margin-left:4px;" title="Change my password">🔒</button>' : ''}
             <button class="btn xs" data-action="logout" style="margin-left:4px;">Log out</button>
           </div>
@@ -2052,7 +2060,7 @@
             <div style="font-size:16px;font-weight:600;">${esc(na.name)}</div>
           </div>
         </div>
-        <a href="#" data-action="go-schedule" style="font-size:14px;font-weight:600;text-decoration:none;">View full schedule →</a>
+        <a href="#" data-action="go-schedule" style="display:inline-block;padding:10px 0;font-size:14px;font-weight:600;text-decoration:none;">View full schedule →</a>
       </div>`;
 
       html += renderTotals(false);
@@ -2114,13 +2122,19 @@
       const idx = currentTurnIndex();
       const first = state.turns[0];
       const startLabel = first ? (first.rangeLabel + ' ' + first.start.getFullYear()) : '';
+      const pastN = Math.max(0, idx);
+      const overdueN = state.turns.slice(0, pastN).filter(t => turnStatus(t) === 'overdue').length;
       return `
       <div class="card" style="overflow:hidden;">
         <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
           <div style="font-size:18px;font-weight:700;">Rotation Schedule</div>
           <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Started ${startLabel} · ${periodLabel()} · repeats every ${state.flatmates.length} turns</div>
         </div>
-        ${state.turns.map(t => {
+        ${pastN ? `
+        <div style="padding:10px 24px;border-bottom:1px solid var(--border-soft);">
+          <button class="btn sm" data-action="toggle-past-turns">${state.showPastTurns ? 'Hide' : 'Show'} ${pastN} earlier turn${pastN === 1 ? '' : 's'}${overdueN && !state.showPastTurns ? ` (${overdueN} overdue)` : ''}</button>
+        </div>` : ''}
+        ${(state.showPastTurns ? state.turns : state.turns.slice(pastN)).map(t => {
           const st = turnStatus(t), meta = statusMeta(st);
           const a = turnAssignee(t), note = turnSwapNote(t);
           const isCur = state.turns[idx] && t.id === state.turns[idx].id;
@@ -2403,7 +2417,7 @@
                 <div style="background:${f.color};opacity:0.45;flex:1;"></div>
               </div>
             </div>
-            <div style="width:120px;font-size:12px;color:var(--ink-3);text-align:right;flex-shrink:0;"><strong style="color:var(--ink);">${gs.totals[f.id]}</strong> · ${gs.dutyN[f.id]} duty / ${gs.helpedN[f.id]} helped</div>
+            <div style="min-width:120px;font-size:12px;color:var(--ink-3);text-align:right;flex-shrink:0;white-space:nowrap;"><strong style="color:var(--ink);">${gs.totals[f.id]}</strong> · ${gs.dutyN[f.id]} duty / ${gs.helpedN[f.id]} helped</div>
           </div>`).join('')}
         </div>
         <div style="margin-top:12px;font-size:12px;color:var(--ink-4);">Solid = bought while on duty · faded = helped out on someone else's week.</div>
@@ -2500,7 +2514,7 @@
               <div style="font-size:14px;font-weight:600;">${esc(f.name)}</div>
               <div style="font-size:12px;color:${f.in_kitchen !== false ? 'var(--success-ink)' : 'var(--ink-4)'};">${f.in_kitchen !== false ? 'In the kitchen' : 'Eats outside — excluded'}</div>
             </div>
-            <button class="btn xs ${f.in_kitchen !== false ? 'danger-outline' : 'primary'}" data-action="toggle-kitchen-member" data-id="${f.id}">${f.in_kitchen !== false ? 'Remove from kitchen' : 'Add to kitchen'}</button>
+            <button class="btn xs ${f.in_kitchen !== false ? 'danger-outline' : 'primary'}" data-action="toggle-kitchen-member" data-id="${f.id}">${f.in_kitchen !== false ? 'Remove' : 'Add'}</button>
           </div>`).join('')}
         </div>
       </div>
@@ -2517,9 +2531,11 @@
                 <div style="font-size:14px;font-weight:600;">${esc(u.username)} ${u.is_admin ? '<span class="badge" style="background:var(--accent-soft);color:var(--accent-ink);">ADMIN</span>' : ''}</div>
                 <div style="font-size:12px;color:var(--ink-3);">${f ? esc(f.name) : 'Not linked to a flatmate'}</div>
               </div>
-              ${u.is_admin ? `<button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>` : ''}
-              ${u.id !== state.user.id ? `<button class="btn xs" data-action="toggle-user-admin" data-id="${u.id}">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
-              ${u.id !== state.user.id ? `<button class="btn xs danger-outline" data-action="delete-user" data-id="${u.id}">Delete</button>` : ''}
+              <div class="row-actions">
+                ${u.is_admin ? `<button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>` : ''}
+                ${u.id !== state.user.id ? `<button class="btn xs" data-action="toggle-user-admin" data-id="${u.id}">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
+                ${u.id !== state.user.id ? `<button class="btn xs danger-outline" data-action="delete-user" data-id="${u.id}">Delete</button>` : ''}
+              </div>
             </div>`;
           }).join('')}
         </div>
@@ -2551,7 +2567,7 @@
           <label class="fld" for="set-url">App link (included in WhatsApp messages)</label>
           <input class="input" id="set-url" placeholder="https://your-site.netlify.app" value="${esc(state.settings.app_url || '')}">
           <label class="fld" for="set-tasks">Tasks (comma-separated)</label>
-          <textarea class="input" id="set-tasks" rows="2">${esc(state.settings.tasks || DEFAULT_TASKS)}</textarea>
+          <textarea class="input" id="set-tasks" rows="4">${esc(state.settings.tasks || DEFAULT_TASKS)}</textarea>
           <button class="btn primary" type="submit" style="margin-top:14px;">Save settings</button>
         </form>
       </div>
@@ -2763,6 +2779,7 @@
         }
         ink.style.left = (active.offsetLeft + 8) + 'px';
         ink.style.width = (active.offsetWidth - 16) + 'px';
+        tabs.scrollLeft = active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2; // render() resets it
       };
       // Re-place underline AND re-check scroll state after every render (render() replaces
       // #app innerHTML; content height changes, so a stale .show/.stuck must be recomputed).
