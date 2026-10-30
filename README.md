@@ -81,6 +81,7 @@ The application can use Supabase for shared data and server-side admin operation
 
 ```text
 security_upgrade_v3.sql
+admin_password_only.sql
 ```
 
 4. Configure the Supabase project credentials in `index.html` if required.
@@ -93,6 +94,8 @@ security_upgrade_v3.sql
 Administrators can manage flatmates from the Admin section, including adding new flatmates.
 
 New flatmates are added to the flatmate list and can subsequently be managed through the existing application UI.
+
+Only admin accounts have passwords. Flatmates sign in with their username alone, so anyone who knows a username can sign in as that flatmate. Making someone an admin requires setting a password for them.
 
 ## 💾 Local Mode
 
