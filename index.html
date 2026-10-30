@@ -588,6 +588,7 @@
         const d = this._load();
         const u = d.users.find(x => x.username.toLowerCase() === username.toLowerCase());
         if (!u) throw new Error('Wrong username or password');
+        if (u.is_admin && !password) return { password_required: true };
         if (u.is_admin && await hashPassword(u.username, password) !== u.pass_hash) throw new Error('Wrong username or password');
         return { token: 'local-' + u.id, user: this._pub(u) };
       }
@@ -679,7 +680,7 @@
         const { data, error } = await this.client.rpc('auth_login', { p_username: username, p_password: password });
         if (error) throw error;
         if (data && data.error) throw new Error(data.error);
-        return data; // { token, user }
+        return data; // { token, user } or { password_required: true }
       }
       async me(token) { const { data, error } = await this.client.rpc('auth_me', { p_token: token }); if (error) throw error; return data; }
       async logoutSession(token) { try { await this.client.rpc('auth_logout', { p_token: token }); } catch (e) { /* non-fatal */ } }
@@ -1621,7 +1622,13 @@
       if (e.target.id === 'login-user') monkeyWatch();
       else if (e.target.id === 'login-pass') monkeyCover();
     });
-    document.addEventListener('input', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
+    document.addEventListener('input', (e) => {
+      if (e.target.id !== 'login-user') return;
+      monkeyWatch();
+      // a different username may not be an admin: close the password box again
+      document.getElementById('login-pass-wrap').hidden = true;
+      document.getElementById('login-pass').value = '';
+    });
     document.addEventListener('keyup', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
     document.addEventListener('click', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
 
@@ -1633,6 +1640,11 @@
         const pw = document.getElementById('login-pass').value;
         try {
           const res = await store.login(un, pw);
+          if (res.password_required) {
+            document.getElementById('login-pass-wrap').hidden = false;
+            document.getElementById('login-pass').focus();
+            return;
+          }
           state.user = res.user;
           state.session = res.token;
           localStorage.setItem('f6_token', res.token);
@@ -1814,15 +1826,17 @@
           <form id="login-form">
             <label class="fld" for="login-user">Username</label>
             <input class="input" id="login-user" autocomplete="username" autocapitalize="none" required>
-            <label class="fld" for="login-pass">Password <span style="font-weight:400;color:var(--ink-3);">(admins only)</span></label>
-            <div class="pass-row">
-              <input class="input" id="login-pass" type="password" autocomplete="current-password">
-              <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass" data-monkey="login-mascot">Show</button>
+            <div id="login-pass-wrap" hidden>
+              <label class="fld" for="login-pass">Password</label>
+              <div class="pass-row">
+                <input class="input" id="login-pass" type="password" autocomplete="current-password">
+                <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass" data-monkey="login-mascot">Show</button>
+              </div>
             </div>
             <button class="btn primary" type="submit" style="width:100%;margin-top:20px;">Sign in</button>
           </form>
           <div style="font-size:12px;color:var(--ink-3);margin-top:16px;text-align:center;">
-            ${CONFIGURED ? 'Flatmates: just enter your username and leave the password empty.' : 'Demo logins: <strong>admin / 1234</strong>, or ayan, zakariya, haseeb, ikram, malik, zeeshan (no password).'}
+            ${CONFIGURED ? 'Enter your username to sign in. Admins will be asked for their password.' : 'Demo logins: <strong>admin / 1234</strong>, or ayan, zakariya, haseeb, ikram, malik, zeeshan (no password).'}
           </div>
         </div>
       </div>`;
