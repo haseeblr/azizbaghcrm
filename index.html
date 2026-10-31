@@ -199,11 +199,11 @@
 
         /* card entrance — a gentle staggered rise on tab change */
         @media (prefers-reduced-motion: no-preference) {
-          .container > .card, .container > .banner-warn, .container > div > .stat-grid { animation: cardrise .4s cubic-bezier(.2,.8,.3,1) both; }
-          .container > *:nth-child(2) { animation-delay: .03s; }
-          .container > *:nth-child(3) { animation-delay: .06s; }
-          .container > *:nth-child(4) { animation-delay: .09s; }
-          .container > *:nth-child(5) { animation-delay: .12s; }
+          .container.enter > .card, .container.enter > .banner-warn, .container.enter > div > .stat-grid { animation: cardrise .4s cubic-bezier(.2,.8,.3,1) both; }
+          .container.enter > *:nth-child(2) { animation-delay: .03s; }
+          .container.enter > *:nth-child(3) { animation-delay: .06s; }
+          .container.enter > *:nth-child(4) { animation-delay: .09s; }
+          .container.enter > *:nth-child(5) { animation-delay: .12s; }
           .card { transition: transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .18s; }
           .card.shadow:hover { transform: translateY(-2px); }
         }
@@ -398,6 +398,7 @@
     </div>
 </div>
 <div id="toast-box"></div>
+<div id="dialog-box"></div>
 <button class="to-top" id="to-top" type="button" aria-label="Scroll to top" title="Back to top">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>
 </button>
@@ -852,7 +853,7 @@
       return true;
     }
 
-    async function refresh() {
+    async function refresh(quiet) {
       try {
         applyData(await store.fetchAll());
         await migrateAppName();
@@ -864,7 +865,18 @@
         state.errorMsg = null;
       } catch (e) { state.errorMsg = 'Could not load data: ' + (e.message || e); }
       if (isAdmin() && state.tab === 'admin') await refreshAudit();
+      if (quiet && document.activeElement.matches('#app input, #app textarea, #app select')) return; // don't wipe a half-filled form
       render();
+    }
+
+    /* Realtime fires once per changed row, so a reshuffle arrives as a burst: coalesce it. */
+    let saving = false, bgRefresh = Promise.resolve(), refreshTimer = null;
+    function scheduleRefresh() {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        if (saving) return scheduleRefresh();
+        bgRefresh = refresh(true);
+      }, 600);
     }
 
     async function refreshAudit() {
@@ -1190,24 +1202,77 @@
       box.appendChild(el);
       setTimeout(() => el.remove(), 3500);
     }
-    async function mutate(fn) {
-      try { await fn(); await refresh(); }
-      catch (e) { toast('Save failed: ' + (e.message || e)); await refresh(); }
+    /* In-app confirm/prompt. Lives outside #app so a repaint can't close it.
+       Resolves to true (or the typed text) on OK, null on cancel. */
+    function ask({ title, body = '', ok = 'Confirm', danger = false, input = false, value = '' }) {
+      return new Promise(resolve => {
+        const box = document.getElementById('dialog-box');
+        box.innerHTML = `
+        <div class="modal-overlay">
+          <div class="modal" role="dialog" aria-modal="true">
+            <h2>${esc(title)}</h2>
+            ${body ? `<div class="desc">${esc(body)}</div>` : '<div style="height:12px;"></div>'}
+            ${input ? '<input class="input" id="ask-input" autocapitalize="none" autocomplete="off" style="margin-bottom:16px;">' : ''}
+            <div class="modal-actions">
+              <button class="btn sm" type="button" id="ask-no">Cancel</button>
+              <button class="btn sm ${danger ? 'danger' : 'primary'}" type="button" id="ask-yes">${esc(ok)}</button>
+            </div>
+          </div>
+        </div>`;
+        const overlay = box.firstElementChild, field = box.querySelector('#ask-input'), yesBtn = box.querySelector('#ask-yes');
+        const done = v => { document.removeEventListener('keydown', onKey); box.innerHTML = ''; resolve(v); };
+        const yes = () => done(field ? field.value : true);
+        const onKey = e => {
+          if (e.key === 'Escape') done(null);
+          if (e.key === 'Enter' && document.activeElement.id !== 'ask-no') { e.preventDefault(); yes(); }
+        };
+        document.addEventListener('keydown', onKey);
+        yesBtn.addEventListener('click', yes);
+        box.querySelector('#ask-no').addEventListener('click', () => done(null));
+        overlay.addEventListener('click', e => { if (e.target === overlay) done(null); });
+        if (field) field.value = value;
+        (field || yesBtn).focus();
+      });
+    }
+
+    async function mutate(fn, okMsg = 'Saved ✓') {
+      if (saving) return toast('Still saving…');
+      saving = true;
+      let busy = null;
+      const busyTimer = setTimeout(() => {
+        busy = document.createElement('div');
+        busy.className = 'toast'; busy.textContent = 'Saving…';
+        document.getElementById('toast-box').appendChild(busy);
+      }, 200);
+      try {
+        await bgRefresh; // a reload started before this save must not paint over it
+        await fn();
+        await refresh();
+        if (okMsg) toast(okMsg);
+      } catch (e) { toast('Save failed: ' + (e.message || e)); await refresh(); }
+      clearTimeout(busyTimer);
+      if (busy) busy.remove();
+      saving = false;
     }
 
     /* Admin switch: take someone off a rota (or put them back) and rebuild the upcoming turns. */
-    function toggleMember(id, kind) {
+    async function toggleMember(id, kind) {
       if (!isAdmin()) return;
       const f = findFlatmate(id);
       const field = kind === 'kitchen' ? 'in_kitchen' : 'in_rotation';
       const joining = f[field] === false;
       if (!joining && rota(kind).mates.length <= 1) return toast('At least one person must stay on');
+      const where = kind === 'kitchen' ? 'the kitchen' : 'cleaning';
+      if (!await ask({
+        title: (joining ? 'Add ' + f.name + ' to ' : 'Remove ' + f.name + ' from ') + where + '?',
+        body: 'All upcoming ' + (kind === 'kitchen' ? 'kitchen weeks' : 'cleaning turns') + ' are rebuilt, and any swaps in them are cleared.',
+        ok: joining ? 'Add' : 'Remove', danger: !joining,
+      })) return;
       mutate(async () => {
         await store.adminUpdateFlatmate(state.session, id, { [field]: joining });
         applyData(await store.fetchAll());
         await rebuildRota(kind);
-        toast(f.name + (joining ? ' added to ' : ' removed from ') + (kind === 'kitchen' ? 'the kitchen' : 'cleaning') + ' — upcoming turns updated');
-      });
+      }, f.name + (joining ? ' added to ' : ' removed from ') + where + ' ✓');
     }
 
     const actions = {
@@ -1355,7 +1420,7 @@
         mutate(async () => {
           await moveTurnLater('cleaning', t, n);
           await store.insertAudit(byLine(away) + ' marked away for ' + t.rangeLabel + ' — ' + cover + ' covers, moved to ' + n.rangeLabel);
-        });
+        }, cover + ' covers this turn ✓');
       },
       'accept-makeup': (el) => {
         const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
@@ -1393,7 +1458,7 @@
         mutate(async () => {
           await store.updateTurn(t.id, { assignee_id: newId, swap: null });
           await store.insertAudit(meName() + ' reassigned ' + t.rangeLabel + ' from ' + oldName + ' to ' + findFlatmate(newId).name);
-        });
+        }, t.rangeLabel + ' given to ' + findFlatmate(newId).name + ' ✓');
       },
 
       /* ----- admin: rotation period ----- */
@@ -1464,7 +1529,7 @@
         if (!isAdmin()) return;
         const u = state.users.find(x => x.id === Number(el.dataset.id));
         if (!u) return;
-        const np = prompt('New password for "' + u.username + '" (min 8 characters — they will be asked to change it on first login):');
+        const np = await ask({ title: 'Reset password for ' + u.username, body: 'Minimum 8 characters. They will be asked to change it on first login.', ok: 'Reset password', input: true });
         if (np === null) return;
         if (!np || np.length < 8) return toast('Password must be at least 8 characters');
         try {
@@ -1481,10 +1546,10 @@
         if (u.id === state.user.id) return toast("You can't change your own admin role");
         let np = null;
         if (!u.is_admin) { // admins log in with a password, so a new admin needs one
-          np = prompt('Password for new admin "' + u.username + '" (min 8 characters — they will be asked to change it on first login):');
+          np = await ask({ title: 'Make ' + u.username + ' an admin', body: 'Set their password: minimum 8 characters. They will be asked to change it on first login.', ok: 'Make admin', input: true });
           if (np === null) return;
           if (np.length < 8) return toast('Password must be at least 8 characters');
-        }
+        } else if (!await ask({ title: 'Remove admin from ' + u.username + '?', body: 'Their password is deleted and they sign in with just their username.', ok: 'Remove admin', danger: true })) return;
         try {
           await store.adminSetAdmin(state.session, u.id, !u.is_admin, np);
           state.users = await store.listUsers(state.session);
@@ -1496,7 +1561,7 @@
         const u = state.users.find(x => x.id === Number(el.dataset.id));
         if (!u) return;
         if (u.id === state.user.id) return toast("You can't delete yourself");
-        if (!confirm('Delete user "' + u.username + '"?')) return;
+        if (!await ask({ title: 'Delete user ' + u.username + '?', body: 'Their login is removed. Their schedule and history stay.', ok: 'Delete', danger: true })) return;
         try {
           await store.adminDeleteUser(state.session, u.id);
           state.users = await store.listUsers(state.session);
@@ -1525,7 +1590,7 @@
           for (const it of state.kitchen) {
             if (it.status === 'needed' && it.owner_id === away && !it.helped) await store.updateKitchenItem(it.id, { owner_id: coverId });
           }
-        });
+        }, findFlatmate(coverId).name + ' covers this week ✓');
       },
       'gro-accept-makeup': (el) => {
         const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
@@ -1582,7 +1647,7 @@
         const next = Math.max(0, Math.min(20, cur + Number(el.dataset.delta)));
         if (next === cur && map[me] != null) return;
         map[me] = next;
-        mutate(async () => { await store.updateSetting('chapati_' + iso, JSON.stringify(map)); });
+        mutate(async () => { await store.updateSetting('chapati_' + iso, JSON.stringify(map)); }, null);
       },
       'chap-default': () => {
         const me = myFlatmateId();
@@ -1597,29 +1662,29 @@
       },
       'toggle-cleaning-member': (el) => toggleMember(Number(el.dataset.id), 'cleaning'),
       'toggle-kitchen-member': (el) => toggleMember(Number(el.dataset.id), 'kitchen'),
-      'rename-flatmate': (el) => {
+      'rename-flatmate': async (el) => {
         if (!isAdmin()) return;
         const f = findFlatmate(Number(el.dataset.id));
-        const name = prompt('New name for ' + f.name + ':', f.name);
+        const name = await ask({ title: 'Rename ' + f.name, ok: 'Save', input: true, value: f.name });
         if (name === null || !name.trim() || name.trim() === f.name) return;
-        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { name }));
+        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { name }), 'Renamed to ' + name.trim());
       },
-      'move-out-flatmate': (el) => {
+      'move-out-flatmate': async (el) => {
         if (!isAdmin()) return;
         const f = findFlatmate(Number(el.dataset.id));
-        if (!confirm(f.name + ' has moved out?\n\nThey come off cleaning and the kitchen, and their login is deleted. Their history stays.')) return;
+        if (!await ask({ title: f.name + ' has moved out?', body: 'They come off cleaning and the kitchen, and their login is deleted. Their history stays.', ok: 'Moved out', danger: true })) return;
         mutate(async () => {
           await store.adminUpdateFlatmate(state.session, f.id, { archived: true });
           applyData(await store.fetchAll());
           await rebuildRota('cleaning');
           await rebuildRota('kitchen');
           state.users = await store.listUsers(state.session);
-        });
+        }, f.name + ' marked as moved out');
       },
       'restore-flatmate': (el) => {
         if (!isAdmin()) return;
         const f = findFlatmate(Number(el.dataset.id));
-        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { archived: false }));
+        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { archived: false }), f.name + ' restored');
       },
       'rs-kind': (el) => { state.rsKind = el.dataset.kind; state.rs = null; render(); },
       'rs-reset': () => { state.rs = null; render(); },
@@ -1629,11 +1694,11 @@
         [o[i], o[j]] = [o[j], o[i]];
         render();
       },
-      'rs-apply': () => {
+      'rs-apply': async () => {
         if (!isAdmin()) return;
         const v = reshuffleView();
         if (!v.from.length) return toast('No upcoming turns to change');
-        if (!confirm('Apply this order to ' + v.from.length + ' upcoming turns and all future ones?\n\nSwaps and away moves in those turns are cleared.')) return;
+        if (!await ask({ title: 'Apply this new order?', body: 'It replaces ' + v.from.length + ' upcoming turns and all future ones. Swaps and away moves in those turns are cleared.', ok: 'Apply' })) return;
         const kind = state.rsKind, r = rota(kind);
         const mates = v.order.map(findFlatmate);
         const rest = state.flatmates.filter(f => !v.order.includes(f.id)).map(f => f.id);
@@ -1642,8 +1707,7 @@
           await store.updateSetting(r.key, v.order.concat(rest).join(','));
           await rewriteTurns(kind, mates, v.from);
           await store.insertAudit(meName() + ' reshuffled the ' + kind + ' schedule from ' + v.from[0].rangeLabel + ': ' + mates.map(f => f.name).join(', '));
-        });
-        toast('Schedule updated');
+        }, 'Schedule updated ✓');
       },
       'edit-user': (el) => { state.editUserId = Number(el.dataset.id); render(); },
       'cancel-edit-user': () => { state.editUserId = null; render(); },
@@ -1657,8 +1721,7 @@
         mutate(async () => {
           await store.updateSetting('menu_' + dateIso, JSON.stringify({ text: val }));
           await store.insertAudit(meName() + " set " + dayName + "'s food" + (val ? '' : ' (cleared)'));
-        });
-        toast(val ? "Tomorrow's food saved" : "Tomorrow's food cleared");
+        }, val ? "Tomorrow's food saved ✓" : "Tomorrow's food cleared");
       },
       'send-maid': () => {
         if (hasUnsavedMenu()) return toast("Save tomorrow's food first");
@@ -1878,8 +1941,7 @@
           await store.updateSetting('app_url', url);
           await store.updateSetting('tasks', tasks);
           await store.insertAudit(meName() + ' updated app settings');
-        });
-        toast('Settings saved');
+        }, 'Settings saved ✓');
       }
     });
 
@@ -2858,15 +2920,26 @@
       return html;
     }
 
+    /* Rebuilding the page restarts its animations and drops focus, so skip identical repaints
+       (realtime echoes of our own saves are the common case). Cards only rise on a tab change. */
+    let lastHtml = null, lastView = null;
+    function paint(html) {
+      const app = document.getElementById('app'), view = state.user ? state.tab : 'login';
+      app.classList.toggle('enter', view !== lastView);
+      lastView = view;
+      if (html === lastHtml) return;
+      lastHtml = html;
+      app.innerHTML = html;
+    }
+
     function render() {
       // Never repaint over in-progress typing: background refreshes (realtime, timers)
       // wait until the field blurs — the blur itself triggers a save + fresh render.
       const ae = document.activeElement;
       if (ae && (ae.dataset && ae.dataset.menuDate || ae.id === 'ki-name') && ae.value !== undefined && state.user) return;
-      const app = document.getElementById('app');
-      if (!state.ready) { app.innerHTML = '<div class="boot"><div class="spinner"></div>Loading…</div>'; return; }
-      if (!state.user) { app.innerHTML = (state.errorMsg ? `<div class="banner-warn" style="margin-bottom:8px;"><div>⚠️</div><div style="font-size:14px;color:var(--warn-ink);">${esc(state.errorMsg)}</div></div>` : '') + renderLogin(); return; }
-      if (state.user.must_change) { app.innerHTML = renderChangePassword(true); return; }
+      if (!state.ready) return paint('<div class="boot"><div class="spinner"></div>Loading…</div>');
+      if (!state.user) return paint((state.errorMsg ? `<div class="banner-warn" style="margin-bottom:8px;"><div>⚠️</div><div style="font-size:14px;color:var(--warn-ink);">${esc(state.errorMsg)}</div></div>` : '') + renderLogin());
+      if (state.user.must_change) return paint(renderChangePassword(true));
       let html = renderHeader();
       if (!CONFIGURED) {
         html += `<div class="banner-setup">🔌 <strong>Demo mode</strong> — data is saved only on this device. To share it with all flatmates, connect the free Supabase database (see README.md) and redeploy.</div>`;
@@ -2895,7 +2968,7 @@
       else if (state.tab === 'history') html += renderHistory();
       else if (state.tab === 'admin') html += renderAdmin();
       html += renderModals();
-      app.innerHTML = html;
+      paint(html);
     }
 
     /* ================= boot ================= */
@@ -2908,7 +2981,7 @@
         if (await ensureTurnsCover()) applyData(await store.fetchAll());
         if (await ensureGroceryCover()) applyData(await store.fetchAll());
         if (await healOrphanItems()) applyData(await store.fetchAll());
-        store.onChange(() => refresh());
+        store.onChange(scheduleRefresh);
       } catch (e) {
         store = new LocalStore();
         await store.init();
