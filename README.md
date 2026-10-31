@@ -82,6 +82,7 @@ The application can use Supabase for shared data and server-side admin operation
 ```text
 security_upgrade_v3.sql
 admin_password_only.sql
+admin_tools.sql
 ```
 
 4. Configure the Supabase project credentials in `index.html` if required.
@@ -94,6 +95,14 @@ admin_password_only.sql
 Administrators can manage flatmates from the Admin section, including adding new flatmates.
 
 New flatmates are added to the flatmate list and can subsequently be managed through the existing application UI.
+
+From the Admin tab, administrators can run everything without code or SQL:
+
+- **Reshuffle schedule:** set a new order for cleaning or the kitchen, preview it and apply it to all upcoming turns. New turns keep following that order.
+- **Flatmates:** take someone off cleaning or the kitchen, rename them, or mark them as moved out (their login is deleted, their history stays).
+- **Users:** edit a username or linked flatmate.
+
+Anyone can mark themselves away from their own turn: the next person covers, and they do the turn straight after as their makeup. Admins can do this for anyone. A past turn counts as done even if nobody marked it.
 
 Only admin accounts have passwords. Flatmates sign in with their username alone, so anyone who knows a username can sign in as that flatmate. Making someone an admin requires setting a password for them.
 

@@ -543,7 +543,29 @@
           .sort((a, b) => (a.sort || 0) - (b.sort || 0));
         return { flatmates, turns: d.turns, makeup: d.makeup, users: d.users, settings: d.settings, gturns: d.gturns, kitchen: d.kitchen, kitchenReady: true, kitchenFlagMissing: false };
       }
-      async updateFlatmate(id, patch) { const d = this._load(); d.fm_overrides[id] = { ...(d.fm_overrides[id] || {}), ...patch }; this._save(d); }
+      async adminUpdateFlatmate(token, id, patch) {
+        const d = this._load();
+        if (patch.name !== undefined) {
+          const clean = String(patch.name).trim();
+          if (clean.length < 2 || clean.length > 80) throw new Error('Flatmate name must be 2–80 characters');
+          const all = DEFAULT_FLATMATES.concat(d.custom_flatmates || []).map(f => ({ ...f, ...(d.fm_overrides[f.id] || {}) }));
+          if (all.some(f => f.id !== id && f.name.toLowerCase() === clean.toLowerCase())) throw new Error('Flatmate already exists');
+          patch = { ...patch, name: clean };
+        }
+        if (patch.archived) {
+          patch = { ...patch, in_rotation: false, in_kitchen: false };
+          d.users = d.users.filter(u => u.flatmate_id !== id || u.is_admin);
+        }
+        d.fm_overrides[id] = { ...(d.fm_overrides[id] || {}), ...patch };
+        this._save(d);
+      }
+      async adminUpdateUser(token, userId, username, flatmateId) {
+        const d = this._load(); const u = d.users.find(x => x.id === userId);
+        if (!u) throw new Error('User not found');
+        if (d.users.some(x => x.id !== userId && x.username === username)) throw new Error('Username already exists');
+        if (u.is_admin && username !== u.username) throw new Error('Demo logins hash the username, so admins cannot be renamed here');
+        u.username = username; u.flatmate_id = flatmateId; this._save(d);
+      }
       async fetchAudit() { return this._load().audit.slice(0, 30); }
       async insertTurns(rows) {
         const d = this._load();
@@ -678,7 +700,6 @@
       async insertAudit(action) { const { error } = await this.client.from('audit_log').insert({ action }); if (error) throw error; }
       async updateSetting(key, value) { const { error } = await this.client.from('settings').upsert({ key, value }); if (error) throw error; }
       async deleteSetting(key) { const { error } = await this.client.from('settings').delete().eq('key', key); if (error) throw error; }
-      async updateFlatmate(id, patch) { const { error } = await this.client.from('flatmates').update(patch).eq('id', id); if (error) throw error; }
       /* ---- kitchen ---- */
       async insertGroceryTurns(rows) { const { error } = await this.client.from('grocery_turns').upsert(rows, { onConflict: 'start_date', ignoreDuplicates: true }); if (error) throw error; }
       async updateGroceryTurn(id, patch) { const { error } = await this.client.from('grocery_turns').update(patch).eq('id', id); if (error) throw error; }
@@ -706,6 +727,11 @@
       async adminResetPassword(token, userId, password) { const { error } = await this.client.rpc('admin_reset_password', { p_token: token, p_user_id: userId, p_password: password }); if (error) throw error; }
       async adminSetAdmin(token, userId, isAdmin, password) { const { error } = await this.client.rpc('admin_set_admin', { p_token: token, p_user_id: userId, p_is_admin: isAdmin, p_password: password || null }); if (error) throw error; }
       async adminDeleteUser(token, userId) { const { error } = await this.client.rpc('admin_delete_user', { p_token: token, p_user_id: userId }); if (error) throw error; }
+      async adminUpdateUser(token, userId, username, flatmateId) { const { error } = await this.client.rpc('admin_update_user', { p_token: token, p_user_id: userId, p_username: username, p_flatmate_id: flatmateId }); if (error) throw error; }
+      async adminUpdateFlatmate(token, id, patch) {
+        const { error } = await this.client.rpc('admin_update_flatmate', { p_token: token, p_id: id, p_name: patch.name ?? null, p_in_rotation: patch.in_rotation ?? null, p_in_kitchen: patch.in_kitchen ?? null, p_archived: patch.archived ?? null });
+        if (error) throw error;
+      }
       onChange(cb) {
         this.client.channel('db-changes')
           .on('postgres_changes', { event: '*', schema: 'public' }, () => cb())
@@ -723,7 +749,8 @@
       user: null, // logged-in user (public fields only — never any hash)
       session: null, // auth token; admin actions are verified server-side against it
       swapModalOpen: false, swapTargetId: null,
-      skipConfirmOpen: false, undoConfirmId: null, editTurnId: null, showPastTurns: false,
+      skipTurnId: null, undoConfirmId: null, editTurnId: null, showPastTurns: false,
+      rs: null, rsKind: 'cleaning', editUserId: null, // admin: reshuffle draft, user being edited
       periodConfirm: null, // pending new period days awaiting confirm
       startDayConfirm: null, // pending new start weekday (0-6) awaiting confirm
       lightbox: null, // data URL of photo being viewed full-screen
@@ -760,7 +787,7 @@
 
     /* generate upcoming turns so the schedule always extends ~8 periods ahead */
     async function ensureTurnsCover() {
-      const pd = periodDays(), fm = state.flatmates;
+      const pd = periodDays(), fm = cleaningMates();
       if (!fm.length) return false;
       const horizon = addDays(new Date(), pd * 8);
       const last = state.turns[state.turns.length - 1];
@@ -770,7 +797,7 @@
         rot = 0;
       } else {
         cursor = addDays(new Date(last.end_date + 'T00:00:00'), 1);
-        rot = ((last.rot_index || 0) + 1) % fm.length;
+        rot = nextRotIndex(last, fm);
       }
       const rows = [];
       while (cursor <= horizon && rows.length < 400) {
@@ -811,14 +838,9 @@
       if (healed) return true; // refetch, then this pass runs again over clean rows
 
       const have = new Set(state.gturns.map(t => t.start_date));
-      // Continue the cycle from the last existing grocery week. If its assignee has since
-      // left the kitchen, fall back to that week's recorded position in the current roster.
+      // Continue the cycle from the last existing grocery week.
       const last = state.gturns[state.gturns.length - 1];
-      let rot = 0;
-      if (last) {
-        const i = km.findIndex(f => f.id === last.assignee_id);
-        rot = ((i >= 0 ? i : (last.rot_index || 0)) + 1) % km.length;
-      }
+      let rot = last ? nextRotIndex(last, km) : 0;
       const rows = [];
       for (const t of state.turns) {
         if (t.end_date < today || have.has(t.start_date)) continue;
@@ -917,18 +939,62 @@
     function findFlatmate(id) { return state.flatmates.find(f => f.id === Number(id)) || { id: 0, name: '?', color: 'oklch(0.7 0.01 250)' }; }
     function activeAssigneeId(t) { return (t.swap && t.swap.status === 'accepted') ? t.swap.toId : t.assignee_id; }
     function turnAssignee(t) { return findFlatmate(activeAssigneeId(t)); }
-    function nextFlatmateAfter(id) { const i = state.flatmates.findIndex(f => f.id === Number(id)); return state.flatmates[(i + 1) % state.flatmates.length]; }
-    function turnStatus(t) { if (t.completed_at) return 'completed'; if (new Date() > t.end) return 'overdue'; return 'pending'; }
+    function activeFlatmates() { return state.flatmates.filter(f => !f.archived); }
+    function inSavedOrder(list, key) {
+      const ids = String(state.settings[key] || '').split(',').filter(Boolean).map(Number);
+      const pos = f => { const i = ids.indexOf(f.id); return i < 0 ? ids.length : i; };
+      return list.slice().sort((a, b) => pos(a) - pos(b));
+    }
+    function cleaningMates() { return inSavedOrder(activeFlatmates().filter(f => f.in_rotation !== false), 'rotation_order'); }
+    function rota(kind) {
+      return kind === 'kitchen'
+        ? { turns: state.gturns, mates: kitchenMates(), key: 'kitchen_order', update: (id, p) => store.updateGroceryTurn(id, p) }
+        : { turns: state.turns, mates: cleaningMates(), key: 'rotation_order', update: (id, p) => store.updateTurn(id, p) };
+    }
+    function openTurns(kind) { const today = todayIso(); return rota(kind).turns.filter(t => t.end_date >= today && !t.completed_at); }
+    // Whose place in the cycle a turn holds: a swapped or moved turn still holds its original owner's.
+    function slotHolder(t) { return t.swap && t.swap.status === 'accepted' ? t.swap.fromId : t.assignee_id; }
+    function nextRotIndex(last, mates) {
+      const i = mates.findIndex(f => f.id === slotHolder(last));
+      return ((i >= 0 ? i : (last.rot_index || 0)) + 1) % mates.length;
+    }
+    async function rewriteTurns(kind, mates, turns, start = 0) {
+      const r = rota(kind);
+      for (let i = 0; i < turns.length; i++) {
+        const rot = (start + i) % mates.length, t = turns[i], id = mates[rot].id;
+        if (t.assignee_id !== id || t.swap || t.rot_index !== rot) await r.update(t.id, { assignee_id: id, rot_index: rot, swap: null });
+      }
+    }
+    /* After a roster change: the first upcoming person still on the rota keeps their turn,
+       and everyone after them follows the rota order. */
+    async function rebuildRota(kind) {
+      const r = rota(kind), turns = openTurns(kind), m = r.mates;
+      if (!turns.length || !m.length) return;
+      const keep = turns.map(activeAssigneeId).find(id => m.some(f => f.id === id));
+      await rewriteTurns(kind, m, turns, Math.max(0, m.findIndex(f => f.id === keep)));
+    }
+    /* "I'm away": swap with the next turn held by someone else, so the away person does the
+       immediately following turn as their makeup and nobody else's turn moves. */
+    function nextOpenTurn(kind, t) {
+      const id = activeAssigneeId(t);
+      return rota(kind).turns.find(x => x.start_date > t.start_date && !x.completed_at && activeAssigneeId(x) !== id);
+    }
+    async function moveTurnLater(kind, t, n) {
+      const r = rota(kind), a = activeAssigneeId(t), b = activeAssigneeId(n);
+      await r.update(t.id, { assignee_id: b, swap: { fromId: a, toId: b, status: 'accepted', type: 'skip' } });
+      await r.update(n.id, { assignee_id: a, swap: { fromId: b, toId: a, status: 'accepted', type: 'makeup' } });
+    }
+    // Flatmates work from the WhatsApp reminder and rarely log in, so a past turn counts as done.
+    function turnStatus(t) { return t.completed_at || new Date() > t.end ? 'completed' : 'pending'; }
     function statusMeta(s) {
       if (s === 'completed') return { label: 'Completed', bg: 'var(--success-soft)', color: 'var(--success-ink)' };
-      if (s === 'overdue') return { label: 'Overdue', bg: 'var(--danger-soft)', color: 'var(--danger-ink)' };
       return { label: 'Pending', bg: 'var(--warn-soft)', color: 'var(--warn-ink)' };
     }
     function turnSwapNote(t) {
       if (!t.swap) return null;
       const from = findFlatmate(t.swap.fromId).name, to = findFlatmate(t.swap.toId).name;
-      if (t.swap.type === 'skip') return from + ' was away — covered by ' + to;
-      if (t.swap.type === 'makeup') return to + ' took over as makeup (was ' + from + ')';
+      if (t.swap.type === 'skip') return from + ' away — ' + to + ' covers, ' + from + ' moved to the next turn';
+      if (t.swap.type === 'makeup') return to + "'s makeup turn (" + from + ' covered for them)';
       if (t.swap.status === 'accepted') return 'Swapped: ' + from + ' → ' + to;
       return from + ' requested a swap with ' + to + ' — awaiting acceptance';
     }
@@ -969,15 +1035,9 @@
     /* ================= kitchen domain ================= */
     // Kitchen membership: admin-managed flag on flatmates. Missing/undefined counts as
     // IN (so an un-migrated DB keeps working); only an explicit false excludes someone.
-    function kitchenMates() { return state.flatmates.filter(f => f.in_kitchen !== false); }
-    function isKitchenMate(fmId) { const f = state.flatmates.find(x => x.id === Number(fmId)); return !!f && f.in_kitchen !== false; }
+    function kitchenMates() { return inSavedOrder(activeFlatmates().filter(f => f.in_kitchen !== false), 'kitchen_order'); }
+    function isKitchenMate(fmId) { const f = state.flatmates.find(x => x.id === Number(fmId)); return !!f && !f.archived && f.in_kitchen !== false; }
     function canSeeKitchen() { return isAdmin() || isKitchenMate(myFlatmateId()); }
-    function nextKitchenMateAfter(id) {
-      const km = kitchenMates();
-      if (!km.length) return null;
-      const i = km.findIndex(f => f.id === Number(id));
-      return km[(i + 1) % km.length]; // if id isn't a kitchen mate, i=-1 → km[0]
-    }
     function todayIso() { return isoDate(new Date()); }
     function tomorrowIso() { return isoDate(addDays(new Date(), 1)); }
     function menuTextFor(iso) {
@@ -1119,9 +1179,6 @@
         return '✅ ' + a.name + ' has completed the cleaning for ' + cur.rangeLabel + '. Great job! 🎉' +
           (nxt ? '\nNext up: ' + turnAssignee(nxt).name + ' (' + nxt.rangeLabel + ').' : '') + photoNote + link;
       }
-      if (st === 'overdue') {
-        return '⚠️ Reminder from ' + appName() + ': ' + a.name + ', the cleaning for ' + cur.rangeLabel + ' is OVERDUE. Please finish it as soon as possible!\nTasks: ' + taskList().join(', ') + link;
-      }
       return '🧹 ' + appName() + ': ' + a.name + ' is on cleaning duty for ' + cur.rangeLabel + ' (' + daysLeft(cur) + ' day' + (daysLeft(cur) === 1 ? '' : 's') + ' left).\nTasks: ' + taskList().join(', ') + link;
     }
 
@@ -1136,6 +1193,21 @@
     async function mutate(fn) {
       try { await fn(); await refresh(); }
       catch (e) { toast('Save failed: ' + (e.message || e)); await refresh(); }
+    }
+
+    /* Admin switch: take someone off a rota (or put them back) and rebuild the upcoming turns. */
+    function toggleMember(id, kind) {
+      if (!isAdmin()) return;
+      const f = findFlatmate(id);
+      const field = kind === 'kitchen' ? 'in_kitchen' : 'in_rotation';
+      const joining = f[field] === false;
+      if (!joining && rota(kind).mates.length <= 1) return toast('At least one person must stay on');
+      mutate(async () => {
+        await store.adminUpdateFlatmate(state.session, id, { [field]: joining });
+        applyData(await store.fetchAll());
+        await rebuildRota(kind);
+        toast(f.name + (joining ? ' added to ' : ' removed from ') + (kind === 'kitchen' ? 'the kitchen' : 'cleaning') + ' — upcoming turns updated');
+      });
     }
 
     const actions = {
@@ -1270,25 +1342,26 @@
           await store.insertAudit(meName() + ' declined the swap for ' + t.rangeLabel);
         });
       },
-      'request-skip': () => { state.skipConfirmOpen = true; render(); },
-      'cancel-skip': () => { state.skipConfirmOpen = false; render(); },
+      'request-skip': (el) => { state.skipTurnId = Number(el.dataset.turn); render(); },
+      'cancel-skip': () => { state.skipTurnId = null; render(); },
       'confirm-skip': () => {
-        const t = state.turns[currentTurnIndex()];
-        if (!canManageTurn(t)) { state.skipConfirmOpen = false; return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this'); }
-        const originalId = t.assignee_id;
-        const covered = nextFlatmateAfter(originalId);
-        state.skipConfirmOpen = false;
+        const t = state.turns.find(x => x.id === state.skipTurnId);
+        state.skipTurnId = null;
+        if (!t) return render();
+        if (!canManageTurn(t)) { render(); return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this'); }
+        const n = nextOpenTurn('cleaning', t);
+        if (!n) { render(); return toast('No later turn to move to'); }
+        const away = activeAssigneeId(t), cover = turnAssignee(n).name;
         mutate(async () => {
-          await store.updateTurn(t.id, { swap: { fromId: originalId, toId: covered.id, status: 'accepted', type: 'skip' } });
-          await store.insertMakeup({ person_id: originalId, week_label: t.rangeLabel, source_turn_id: t.id, kind: 'clean' });
-          await store.insertAudit(byLine(originalId) + ' marked away for ' + t.rangeLabel + ' — covered by ' + covered.name);
+          await moveTurnLater('cleaning', t, n);
+          await store.insertAudit(byLine(away) + ' marked away for ' + t.rangeLabel + ' — ' + cover + ' covers, moved to ' + n.rangeLabel);
         });
       },
       'accept-makeup': (el) => {
         const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
         if (!entry) return;
         if (!(isAdmin() || myFlatmateId() === entry.person_id)) return toast('Only ' + findFlatmate(entry.person_id).name + ' (or an admin) can accept');
-        const t = state.turns.find(x => x.id > entry.source_turn_id && !x.completed_at);
+        const t = openTurns('cleaning').find(x => x.id !== entry.source_turn_id);
         if (!t) return toast('No upcoming turn available');
         mutate(async () => {
           const coveredId = activeAssigneeId(t);
@@ -1442,16 +1515,15 @@
         state.gSkipConfirmOpen = false;
         if (!t) return render();
         if (!canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this');
-        const originalId = t.assignee_id;
-        const covered = nextKitchenMateAfter(originalId);
-        if (!covered) return toast('No other kitchen member to cover');
+        const n = nextOpenTurn('kitchen', t);
+        if (!n) return toast('No later week to move to');
+        const away = activeAssigneeId(t), coverId = activeAssigneeId(n);
         mutate(async () => {
-          await store.updateGroceryTurn(t.id, { swap: { fromId: originalId, toId: covered.id, status: 'accepted', type: 'skip' } });
-          await store.insertMakeup({ person_id: originalId, week_label: t.rangeLabel, source_turn_id: t.id, kind: 'grocery' });
-          await store.insertAudit(byLine(originalId) + ' marked away for grocery duty ' + t.rangeLabel + ' — covered by ' + covered.name);
+          await moveTurnLater('kitchen', t, n);
+          await store.insertAudit(byLine(away) + ' marked away for grocery duty ' + t.rangeLabel + ' — ' + findFlatmate(coverId).name + ' covers, moved to ' + n.rangeLabel);
           // hand this week's still-needed default items to whoever now owns the duty
           for (const it of state.kitchen) {
-            if (it.status === 'needed' && it.owner_id === originalId && !it.helped) await store.updateKitchenItem(it.id, { owner_id: covered.id });
+            if (it.status === 'needed' && it.owner_id === away && !it.helped) await store.updateKitchenItem(it.id, { owner_id: coverId });
           }
         });
       },
@@ -1523,20 +1595,58 @@
           await store.insertAudit(meName() + ' set their daily chapati default to ' + val);
         });
       },
-      'toggle-kitchen-member': (el) => {
+      'toggle-cleaning-member': (el) => toggleMember(Number(el.dataset.id), 'cleaning'),
+      'toggle-kitchen-member': (el) => toggleMember(Number(el.dataset.id), 'kitchen'),
+      'rename-flatmate': (el) => {
         if (!isAdmin()) return;
         const f = findFlatmate(Number(el.dataset.id));
-        if (!f || !f.id) return;
-        const joining = f.in_kitchen === false;
-        const km = kitchenMates();
-        if (!joining && km.length <= 1) return toast('At least one kitchen member is required');
+        const name = prompt('New name for ' + f.name + ':', f.name);
+        if (name === null || !name.trim() || name.trim() === f.name) return;
+        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { name }));
+      },
+      'move-out-flatmate': (el) => {
+        if (!isAdmin()) return;
+        const f = findFlatmate(Number(el.dataset.id));
+        if (!confirm(f.name + ' has moved out?\n\nThey come off cleaning and the kitchen, and their login is deleted. Their history stays.')) return;
         mutate(async () => {
-          await store.updateFlatmate(f.id, { in_kitchen: joining });
-          // Future grocery weeks must reflect the new roster — regenerate them.
-          try { await store.deleteFutureGroceryTurns(todayIso()); } catch (e) { /* kitchen not upgraded yet */ }
-          await store.insertAudit(meName() + (joining ? ' added ' : ' removed ') + f.name + (joining ? ' to' : ' from') + ' the kitchen');
+          await store.adminUpdateFlatmate(state.session, f.id, { archived: true });
+          applyData(await store.fetchAll());
+          await rebuildRota('cleaning');
+          await rebuildRota('kitchen');
+          state.users = await store.listUsers(state.session);
         });
       },
+      'restore-flatmate': (el) => {
+        if (!isAdmin()) return;
+        const f = findFlatmate(Number(el.dataset.id));
+        mutate(() => store.adminUpdateFlatmate(state.session, f.id, { archived: false }));
+      },
+      'rs-kind': (el) => { state.rsKind = el.dataset.kind; state.rs = null; render(); },
+      'rs-reset': () => { state.rs = null; render(); },
+      'rs-move': (el) => {
+        const o = state.rs.order, i = o.indexOf(Number(el.dataset.id)), j = i + Number(el.dataset.dir);
+        if (j < 0 || j >= o.length) return;
+        [o[i], o[j]] = [o[j], o[i]];
+        render();
+      },
+      'rs-apply': () => {
+        if (!isAdmin()) return;
+        const v = reshuffleView();
+        if (!v.from.length) return toast('No upcoming turns to change');
+        if (!confirm('Apply this order to ' + v.from.length + ' upcoming turns and all future ones?\n\nSwaps and away moves in those turns are cleared.')) return;
+        const kind = state.rsKind, r = rota(kind);
+        const mates = v.order.map(findFlatmate);
+        const rest = state.flatmates.filter(f => !v.order.includes(f.id)).map(f => f.id);
+        state.rs = null;
+        mutate(async () => {
+          await store.updateSetting(r.key, v.order.concat(rest).join(','));
+          await rewriteTurns(kind, mates, v.from);
+          await store.insertAudit(meName() + ' reshuffled the ' + kind + ' schedule from ' + v.from[0].rangeLabel + ': ' + mates.map(f => f.name).join(', '));
+        });
+        toast('Schedule updated');
+      },
+      'edit-user': (el) => { state.editUserId = Number(el.dataset.id); render(); },
+      'cancel-edit-user': () => { state.editUserId = null; render(); },
       'save-menu': (el) => {
         const dateIso = el.dataset.date;
         const ta = document.querySelector('[data-menu-date="' + dateIso + '"]');
@@ -1644,6 +1754,10 @@
     document.addEventListener('keyup', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
     document.addEventListener('click', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
 
+    document.addEventListener('change', (e) => {
+      if (e.target.id === 'rs-start') { state.rs = { order: [], startId: Number(e.target.value) }; render(); } // reshuffleView re-lines the order up
+    });
+
     document.addEventListener('submit', async (e) => {
       /* login */
       if (e.target.id === 'login-form') {
@@ -1692,6 +1806,9 @@
         try {
           await store.adminCreateFlatmate(state.session, name);
           applyData(await store.fetchAll());
+          await rebuildRota('cleaning');
+          await rebuildRota('kitchen');
+          applyData(await store.fetchAll());
           if (await ensureTurnsCover()) applyData(await store.fetchAll());
           if (await ensureGroceryCover()) applyData(await store.fetchAll());
           render();
@@ -1715,6 +1832,23 @@
           render();
           toast('User ' + un + ' created' + (adm ? ' — they must change this password on first login' : ''));
         } catch (err) { toast(err.message || 'Could not create user'); }
+      }
+      /* admin: edit user */
+      if (e.target.id === 'user-edit-form') {
+        e.preventDefault();
+        if (!isAdmin()) return;
+        const id = state.editUserId;
+        const un = document.getElementById('ue-username').value.trim().toLowerCase();
+        const fid = Number(document.getElementById('ue-flatmate').value) || null;
+        if (!/^[a-z0-9_.-]{2,20}$/.test(un)) return toast('Username: 2–20 letters/numbers');
+        try {
+          await store.adminUpdateUser(state.session, id, un, fid);
+          state.users = await store.listUsers(state.session);
+          if (id === state.user.id) { state.user.username = un; state.user.flatmate_id = fid; }
+          state.editUserId = null;
+          render();
+          toast('User updated');
+        } catch (err) { toast(err.message || 'Could not update user'); }
       }
       /* kitchen: add grocery item */
       if (e.target.id === 'kitchen-add-form') {
@@ -1934,16 +2068,6 @@
       const dl = daysLeft(cur);
 
       let html = '';
-      if (st === 'overdue') {
-        html += `
-        <div class="banner-warn">
-          <div style="font-size:20px;line-height:1;">⚠️</div>
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:14px;color:var(--warn-ink);">${esc(appName())} Reminder</div>
-            <div style="font-size:14px;color:var(--warn-ink);margin-top:4px;">This turn's cleaning is still pending. Assigned to <strong>${esc(a.name)}</strong> — use the WhatsApp button below to nudge them.</div>
-          </div>
-        </div>`;
-      }
 
       html += `
       <div class="card shadow hero" style="--pc:${a.color};">
@@ -1967,7 +2091,7 @@
           ${canAct && st !== 'completed' ? `<button class="btn primary lg" data-action="mark-cleaned" data-turn="${cur.id}">Mark as Cleaned</button>` : ''}
           <button class="btn wa lg" data-action="share-wa">${st === 'completed' ? '📲 Share on WhatsApp' : '📲 Remind on WhatsApp'}</button>
           ${canAct && st !== 'completed' ? `<button class="btn ghost" data-action="open-swap">Swap</button>` : ''}
-          ${canAct && st !== 'completed' && !(cur.swap && cur.swap.type === 'skip') ? `<button class="btn ghost" data-action="request-skip">I'm away</button>` : ''}
+          ${canAct && st !== 'completed' ? `<button class="btn ghost" data-action="request-skip" data-turn="${cur.id}">I'm away</button>` : ''}
           ${isAdmin() && st === 'completed' && state.undoConfirmId !== cur.id ? `<button class="btn danger-outline" data-action="request-undo" data-turn="${cur.id}">Undo (admin)</button>` : ''}
         </div>
         ${!canAct && st !== 'completed' ? `<div style="margin-top:12px;font-size:13px;color:var(--ink-3);">Only ${esc(a.name)} (or an admin) can act on this turn.</div>` : ''}
@@ -2069,8 +2193,8 @@
 
     function computeStats() {
       const totals = {};
-      state.flatmates.forEach(f => { totals[f.id] = 0; });
-      state.turns.forEach(t => { if (t.completed_at) { const id = activeAssigneeId(t); totals[id] = (totals[id] || 0) + 1; } });
+      activeFlatmates().forEach(f => { totals[f.id] = 0; });
+      state.turns.forEach(t => { const id = activeAssigneeId(t); if (turnStatus(t) === 'completed' && id in totals) totals[id]++; });
       const vals = Object.values(totals);
       // No flatmates (e.g. empty table) — return a neutral shape rather than crashing the
       // whole render; the dashboard shows a setup banner instead.
@@ -2089,7 +2213,7 @@
         <div class="card" style="padding:24px 28px;">
           <div class="kicker" style="margin-bottom:16px;">Cleaning · completed</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            ${state.flatmates.map(f => `
+            ${activeFlatmates().map(f => `
             <div style="display:flex;align-items:center;gap:12px;">
               <div style="width:88px;font-size:13px;font-weight:600;flex-shrink:0;">${esc(f.name)}</div>
               <div class="bar-track"><div class="bar-fill" style="background:${f.color};width:${Math.round((s.totals[f.id] / s.maxT) * 100)}%"></div></div>
@@ -2104,7 +2228,7 @@
       <div>
         <div class="kicker" style="margin-bottom:12px;padding-left:2px;">Cleaning totals</div>
         <div class="stat-grid">
-          ${state.flatmates.map(f => `
+          ${activeFlatmates().map(f => `
           <div class="stat-card">
             ${av(f, 40, 15)}
             <div style="font-size:13px;font-weight:600;">${esc(f.name)}</div>
@@ -2123,16 +2247,15 @@
       const first = state.turns[0];
       const startLabel = first ? (first.rangeLabel + ' ' + first.start.getFullYear()) : '';
       const pastN = Math.max(0, idx);
-      const overdueN = state.turns.slice(0, pastN).filter(t => turnStatus(t) === 'overdue').length;
       return `
       <div class="card" style="overflow:hidden;">
         <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);">
           <div style="font-size:18px;font-weight:700;">Rotation Schedule</div>
-          <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Started ${startLabel} · ${periodLabel()} · repeats every ${state.flatmates.length} turns</div>
+          <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Started ${startLabel} · ${periodLabel()} · repeats every ${cleaningMates().length} turns</div>
         </div>
         ${pastN ? `
         <div style="padding:10px 24px;border-bottom:1px solid var(--border-soft);">
-          <button class="btn sm" data-action="toggle-past-turns">${state.showPastTurns ? 'Hide' : 'Show'} ${pastN} earlier turn${pastN === 1 ? '' : 's'}${overdueN && !state.showPastTurns ? ` (${overdueN} overdue)` : ''}</button>
+          <button class="btn sm" data-action="toggle-past-turns">${state.showPastTurns ? 'Hide' : 'Show'} ${pastN} earlier turn${pastN === 1 ? '' : 's'}</button>
         </div>` : ''}
         ${(state.showPastTurns ? state.turns : state.turns.slice(pastN)).map(t => {
           const st = turnStatus(t), meta = statusMeta(st);
@@ -2157,9 +2280,10 @@
               </div>` : ''}
               ${isCur ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink);font-size:11px;">NOW</div>' : ''}
               ${pill(meta)}
+              ${canManageTurn(t) && st === 'pending' && nextOpenTurn('cleaning', t) ? `<button class="btn xs" data-action="request-skip" data-turn="${t.id}">Away</button>` : ''}
               ${isAdmin() && !editing ? `<button class="btn xs" data-action="start-edit" data-turn="${t.id}">Reassign</button>` : ''}
-              ${isAdmin() && st === 'completed' && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
-              ${isAdmin() && st === 'completed' && state.undoConfirmId === t.id ? `
+              ${isAdmin() && t.completed_at && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
+              ${isAdmin() && t.completed_at && state.undoConfirmId === t.id ? `
               <div style="display:flex;gap:6px;flex-shrink:0;">
                 <button class="btn xs" data-action="cancel-undo">Cancel</button>
                 <button class="btn xs danger" data-action="confirm-undo" data-turn="${t.id}">Confirm</button>
@@ -2168,7 +2292,7 @@
             ${editing ? `
             <div style="padding:4px 24px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
               <div style="font-size:12px;color:var(--ink-3);margin-right:4px;">Assign to:</div>
-              ${state.flatmates.map(f => `
+              ${activeFlatmates().map(f => `
               <div data-action="set-assignee" data-turn="${t.id}" data-id="${f.id}" style="display:flex;align-items:center;gap:6px;padding:6px 10px 6px 6px;border-radius:100px;border:1.5px solid ${f.color};opacity:${f.id === t.assignee_id ? 1 : 0.55};cursor:pointer;background:var(--surface);">
                 ${av(f, 22, 10)}
                 <div style="font-size:12px;font-weight:600;">${esc(f.name)}</div>
@@ -2181,7 +2305,7 @@
     }
 
     function renderHistory() {
-      const done = state.turns.filter(t => t.completed_at).slice().reverse();
+      const done = state.turns.filter(t => turnStatus(t) === 'completed').slice().reverse();
       return renderTotals(true) + `
       <div class="card" style="overflow:hidden;">
         <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);font-size:18px;font-weight:700;">History</div>
@@ -2196,10 +2320,10 @@
               <div class="nm">${esc(a.name)}</div>
               ${note ? `<div class="note">${esc(note)}</div>` : ''}
             </div>
-            <div style="font-size:12px;color:var(--ink-3);">${fmtDate(t.completed_at)}</div>
+            ${t.completed_at ? `<div style="font-size:12px;color:var(--ink-3);">${fmtDate(t.completed_at)}</div>` : ''}
             <div class="pill" style="background:var(--success-soft);color:var(--success-ink);">Cleaned</div>
-            ${isAdmin() && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
-            ${isAdmin() && state.undoConfirmId === t.id ? `
+            ${isAdmin() && t.completed_at && state.undoConfirmId !== t.id ? `<button class="btn xs danger-outline" data-action="request-undo" data-turn="${t.id}">Undo</button>` : ''}
+            ${isAdmin() && t.completed_at && state.undoConfirmId === t.id ? `
             <div style="display:flex;gap:6px;flex-shrink:0;">
               <button class="btn xs" data-action="cancel-undo">Cancel</button>
               <button class="btn xs danger" data-action="confirm-undo" data-turn="${t.id}">Confirm</button>
@@ -2272,7 +2396,7 @@
           <button class="btn wa lg" data-action="send-maid">🍳 Send tomorrow&#39;s menu</button>
           <button class="btn lg" data-action="share-kitchen">📲 Share with flat</button>
           ${due.level !== 'ok' ? `<button class="btn danger-outline" data-action="nudge-grocery">⚠️ Nudge owner</button>` : ''}
-          ${canAct && !(gt.swap && gt.swap.type === 'skip') ? `<button class="btn ghost" data-action="gro-skip">I'm away</button>` : ''}
+          ${canAct ? `<button class="btn ghost" data-action="gro-skip">I'm away</button>` : ''}
         </div>
         <div class="msg-preview" title="Live preview of the maid message"><strong style="color:var(--ink-3);font-size:11px;letter-spacing:.05em;">MESSAGE TO MAID · SEND TONIGHT</strong>\n${esc(maidMessage())}</div>
       </div>`;
@@ -2425,11 +2549,68 @@
       return html;
     }
 
+    /* Draft for the Reshuffle card. The default order starts with whoever already holds the
+       start turn, so applying it unchanged changes nothing. */
+    function reshuffleView() {
+      const kind = state.rsKind, r = rota(kind), open = openTurns(kind), ids = r.mates.map(f => f.id);
+      let rs = state.rs;
+      const start = (rs && open.find(t => t.id === rs.startId)) || open[0] || null;
+      if (!rs || rs.order.length !== ids.length || !ids.every(id => rs.order.includes(id))) {
+        const i = start ? Math.max(0, ids.indexOf(activeAssigneeId(start))) : 0;
+        rs = state.rs = { order: ids.slice(i).concat(ids.slice(0, i)), startId: null };
+      }
+      rs.startId = start ? start.id : null;
+      const at = start ? r.turns.findIndex(t => t.id === start.id) : -1;
+      const prev = at > 0 ? r.turns[at - 1] : null;
+      const repeat = prev && rs.order.length > 1 && activeAssigneeId(prev) === rs.order[0];
+      return { order: rs.order, open, start, from: start ? open.slice(open.indexOf(start)) : [], prev, repeat };
+    }
+
+    function renderReshuffle() {
+      const v = reshuffleView();
+      const last = v.order.length - 1;
+      return `
+      <div class="card" style="padding:24px 28px;">
+        <div class="kicker" style="margin-bottom:6px;">Reshuffle schedule</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Set a new order and it applies to every upcoming turn, and keeps going for all future ones. Finished turns never change.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+          ${[['cleaning', 'Cleaning'], ['kitchen', 'Kitchen']].map(([k, l]) => `<button class="period-opt ${state.rsKind === k ? 'sel' : ''}" data-action="rs-kind" data-kind="${k}">${l}</button>`).join('')}
+        </div>
+        <label class="fld" for="rs-start">Start from</label>
+        <select class="input" id="rs-start">
+          ${v.open.map(t => `<option value="${t.id}" ${v.start && t.id === v.start.id ? 'selected' : ''}>${t.rangeLabel}</option>`).join('')}
+        </select>
+        <label class="fld" style="margin-top:14px;">New order</label>
+        <div style="display:flex;flex-direction:column;">
+          ${v.order.map((id, i) => {
+            const f = findFlatmate(id);
+            return `
+            <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border-soft);">
+              <div style="width:18px;font-size:13px;font-weight:700;color:var(--ink-3);">${i + 1}</div>
+              ${av(f, 28, 10)}
+              <div style="flex:1;font-size:14px;font-weight:600;min-width:0;">${esc(f.name)}</div>
+              <button class="btn xs" data-action="rs-move" data-id="${id}" data-dir="-1" aria-label="Move ${esc(f.name)} up" ${i === 0 ? 'disabled' : ''}>↑</button>
+              <button class="btn xs" data-action="rs-move" data-id="${id}" data-dir="1" aria-label="Move ${esc(f.name)} down" ${i === last ? 'disabled' : ''}>↓</button>
+            </div>`;
+          }).join('')}
+        </div>
+        ${v.repeat ? `<div class="fair-note">⚠️ ${esc(findFlatmate(v.order[0]).name)} also has the turn just before this, so they'd do two in a row.</div>` : ''}
+        <label class="fld" style="margin-top:14px;">Preview</label>
+        <div style="font-size:13px;color:var(--ink-2);display:grid;grid-template-columns:auto 1fr;gap:4px 14px;">
+          ${v.from.slice(0, 8).map((t, i) => `<div style="color:var(--ink-3);">${t.rangeLabel}</div><div style="font-weight:600;">${esc(findFlatmate(v.order[i % v.order.length]).name)}</div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+          <button class="btn primary" data-action="rs-apply">Apply to all upcoming turns</button>
+          <button class="btn" data-action="rs-reset">Reset</button>
+        </div>
+      </div>`;
+    }
+
     function renderAdmin() {
       if (!isAdmin()) return '<div class="boot">Admins only.</div>';
       const pd = periodDays();
       const opts = [[2, 'Every 2 days'], [3, 'Every 3 days'], [7, 'Weekly']];
-      return `
+      return renderReshuffle() + `
       <div class="card" style="padding:24px 28px;">
         <div class="kicker" style="margin-bottom:6px;">Rotation period</div>
         <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">How long each person's turn lasts. Changing this regenerates all <strong>upcoming</strong> turns — completed history is kept.</div>
@@ -2483,15 +2664,30 @@
 
       <div class="card" style="padding:24px 28px;">
         <div class="kicker" style="margin-bottom:6px;">Flatmates</div>
-        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Everyone who lives in the flat. Add a new flatmate here first, then create their login below if they need one.</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Tap <strong>Cleaning</strong> or <strong>Kitchen</strong> to take someone off that rota or put them back. Upcoming turns update straight away. Only kitchen members see the Kitchen tab, get grocery duty and count for chapatis.</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-          ${state.flatmates.map(f => `
-          <div style="display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--border-soft);">
+          ${activeFlatmates().map(f => `
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
             ${av(f, 30, 11)}
-            <div style="font-size:14px;font-weight:600;flex:1;">${esc(f.name)}</div>
-            <div style="font-size:12px;color:${f.in_kitchen !== false ? 'var(--success-ink)' : 'var(--ink-4)'};">${f.in_kitchen !== false ? 'Kitchen' : 'Not in kitchen'}</div>
+            <div style="font-size:14px;font-weight:600;flex:1;min-width:120px;">${esc(f.name)}</div>
+            <div class="row-actions">
+              <button class="btn xs ${f.in_rotation !== false ? 'primary' : ''}" data-action="toggle-cleaning-member" data-id="${f.id}" aria-pressed="${f.in_rotation !== false}">${f.in_rotation !== false ? '✓ ' : ''}Cleaning</button>
+              <button class="btn xs ${f.in_kitchen !== false ? 'primary' : ''}" data-action="toggle-kitchen-member" data-id="${f.id}" aria-pressed="${f.in_kitchen !== false}">${f.in_kitchen !== false ? '✓ ' : ''}Kitchen</button>
+              <button class="btn xs" data-action="rename-flatmate" data-id="${f.id}">Rename</button>
+              <button class="btn xs danger-outline" data-action="move-out-flatmate" data-id="${f.id}">Moved out</button>
+            </div>
           </div>`).join('')}
         </div>
+        ${state.flatmates.some(f => f.archived) ? `
+        <div class="kicker" style="margin-bottom:4px;">Moved out</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          ${state.flatmates.filter(f => f.archived).map(f => `
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-soft);">
+            ${av(f, 30, 11)}
+            <div style="font-size:14px;font-weight:600;flex:1;">${esc(f.name)}</div>
+            <button class="btn xs" data-action="restore-flatmate" data-id="${f.id}">Restore</button>
+          </div>`).join('')}
+        </div>` : ''}
         <form id="flatmate-form">
           <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
             <div style="flex:1;min-width:180px;">
@@ -2504,26 +2700,24 @@
       </div>
 
       <div class="card" style="padding:24px 28px;">
-        <div class="kicker" style="margin-bottom:6px;">Kitchen members</div>
-        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Who eats from the kitchen. Only members (and admins) see the Kitchen tab, get grocery duty, and count for chapatis. Toggling regenerates upcoming grocery weeks.</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          ${state.flatmates.map(f => `
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
-            ${av(f, 30, 11)}
-            <div style="flex:1;min-width:120px;">
-              <div style="font-size:14px;font-weight:600;">${esc(f.name)}</div>
-              <div style="font-size:12px;color:${f.in_kitchen !== false ? 'var(--success-ink)' : 'var(--ink-4)'};">${f.in_kitchen !== false ? 'In the kitchen' : 'Eats outside — excluded'}</div>
-            </div>
-            <button class="btn xs ${f.in_kitchen !== false ? 'danger-outline' : 'primary'}" data-action="toggle-kitchen-member" data-id="${f.id}">${f.in_kitchen !== false ? 'Remove' : 'Add'}</button>
-          </div>`).join('')}
-        </div>
-      </div>
-
-      <div class="card" style="padding:24px 28px;">
         <div class="kicker" style="margin-bottom:14px;">Users &amp; passwords</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
           ${state.users.map(u => {
             const f = u.flatmate_id ? findFlatmate(u.flatmate_id) : null;
+            if (state.editUserId === u.id) return `
+            <form id="user-edit-form" style="padding:8px 0;border-bottom:1px solid var(--border-soft);">
+              <label class="fld" for="ue-username">Username</label>
+              <input class="input" id="ue-username" autocapitalize="none" value="${esc(u.username)}" required>
+              <label class="fld" for="ue-flatmate">Flatmate</label>
+              <select class="input" id="ue-flatmate">
+                <option value="">— none —</option>
+                ${activeFlatmates().map(x => `<option value="${x.id}" ${x.id === u.flatmate_id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
+              </select>
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn sm primary" type="submit">Save</button>
+                <button class="btn sm" type="button" data-action="cancel-edit-user">Cancel</button>
+              </div>
+            </form>`;
             return `
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
               ${f ? av(f, 30, 11) : '<div class="avatar" style="width:30px;height:30px;font-size:11px;background:var(--accent)">A</div>'}
@@ -2532,6 +2726,7 @@
                 <div style="font-size:12px;color:var(--ink-3);">${f ? esc(f.name) : 'Not linked to a flatmate'}</div>
               </div>
               <div class="row-actions">
+                <button class="btn xs" data-action="edit-user" data-id="${u.id}">Edit</button>
                 ${u.is_admin ? `<button class="btn xs" data-action="reset-password" data-id="${u.id}">Reset password</button>` : ''}
                 ${u.id !== state.user.id ? `<button class="btn xs" data-action="toggle-user-admin" data-id="${u.id}">${u.is_admin ? 'Remove admin' : 'Make admin'}</button>` : ''}
                 ${u.id !== state.user.id ? `<button class="btn xs danger-outline" data-action="delete-user" data-id="${u.id}">Delete</button>` : ''}
@@ -2547,7 +2742,7 @@
             <div><label class="fld" for="nu-flatmate">Flatmate</label>
               <select class="input" id="nu-flatmate">
                 <option value="">— none (admin only) —</option>
-                ${state.flatmates.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('')}
+                ${activeFlatmates().map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('')}
               </select>
             </div>
             <div style="display:flex;align-items:center;gap:8px;padding-bottom:10px;">
@@ -2599,7 +2794,7 @@
             <h2>Request a swap</h2>
             <div class="desc">${esc(a.name)} wants someone else to cover ${cur.rangeLabel}.</div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-              ${state.flatmates.filter(f => f.id !== activeAssigneeId(cur)).map(f => `
+              ${cleaningMates().filter(f => f.id !== activeAssigneeId(cur)).map(f => `
               <div class="cand" data-action="select-swap-target" data-id="${f.id}" style="${state.swapTargetId === f.id ? `border-color:${f.color};background:var(--accent-soft);` : ''}">
                 ${av(f, 34, 13)}
                 <div class="nm">${esc(f.name)}</div>
@@ -2613,17 +2808,18 @@
         </div>`;
       }
 
-      if (state.skipConfirmOpen && cur) {
-        const a = turnAssignee(cur);
-        const nxt = nextFlatmateAfter(cur.assignee_id);
+      const skipT = state.turns.find(t => t.id === state.skipTurnId);
+      const skipN = skipT && nextOpenTurn('cleaning', skipT);
+      if (skipN) {
+        const a = turnAssignee(skipT), b = turnAssignee(skipN);
         html += `
         <div class="modal-overlay" data-dismiss="cancel-skip">
           <div class="modal">
-            <h2>Mark yourself away?</h2>
-            <div class="desc">${esc(a.name)} won't be around this turn. <strong>${esc(nxt.name)}</strong> will cover the cleaning, and ${esc(a.name)} will owe a makeup cleaning when back.</div>
+            <h2>Mark ${esc(a.name)} away?</h2>
+            <div class="desc"><strong>${esc(b.name)}</strong> will do ${skipT.rangeLabel}, and ${esc(a.name)} makes it up by doing ${skipN.rangeLabel}. Nobody else's turn moves.</div>
             <div class="modal-actions">
               <button class="btn sm" data-action="cancel-skip">Cancel</button>
-              <button class="btn sm primary" data-action="confirm-skip">Confirm — I'm away</button>
+              <button class="btn sm primary" data-action="confirm-skip">Confirm — away</button>
             </div>
           </div>
         </div>`;
@@ -2633,12 +2829,13 @@
         const gt = currentGroceryTurn();
         if (gt) {
           const a = turnAssignee(gt);
-          const nxt = nextKitchenMateAfter(gt.assignee_id) || a;
+          const nt = nextOpenTurn('kitchen', gt);
+          const nxt = nt ? turnAssignee(nt) : a;
           html += `
         <div class="modal-overlay" data-dismiss="gro-skip-cancel">
           <div class="modal">
             <h2>Away for grocery duty?</h2>
-            <div class="desc">${esc(a.name)} won't be around this week. <strong>${esc(nxt.name)}</strong> will cover grocery duty (this week's still-needed items move to them), and ${esc(a.name)} will owe a makeup week when back.</div>
+            <div class="desc">${esc(a.name)} won't be around this week. <strong>${esc(nxt.name)}</strong> will cover grocery duty (this week's still-needed items move to them), and ${esc(a.name)} makes it up by taking ${nt ? nt.rangeLabel : 'the next week'}. Nobody else's week moves.</div>
             <div class="modal-actions">
               <button class="btn sm" data-action="gro-skip-cancel">Cancel</button>
               <button class="btn sm primary" data-action="gro-skip-confirm">Confirm — I'm away</button>
