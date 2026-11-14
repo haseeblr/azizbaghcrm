@@ -7,18 +7,20 @@ The project is designed for a shared flat where cleaning responsibilities rotate
 
 ## ✨ Features
 
-- 📊 Dashboard with current cleaning information
-- 📅 Cleaning schedule and rotation
-- 🧹 Track cleaning assignments
-- 📜 Cleaning history
-- 👥 Flatmate management
-- 🍳 Kitchen member management
-- 🔐 Admin controls
-- ⚙️ Application settings
-- 📝 Audit log
-- 💾 Local storage support for running without a backend
-- ☁️ Supabase support for shared/persistent data
-- ➕ Admin can add new flatmates
+**Cleaning**
+- 🧹 Who's on duty now, "Mark as cleaned", and a WhatsApp reminder
+- 🔁 Swap a turn, or mark yourself away
+- 📸 Optional before/after photos
+- 📅 Schedule and 📜 history with a per-person count
+
+**Kitchen** (kitchen members only)
+- 🛒 Weekly grocery owner rotation and a shared grocery list
+- 🍳 Tomorrow's food, sent to the maid on WhatsApp in one tap
+
+**Admin**
+- 👥 Add flatmates, manage logins, choose who cleans and who is in the kitchen
+- ⚙️ Rotation settings, app name, cleaning tasks
+- 📝 Activity log
 
 ## 🛠️ Tech Stack
 
