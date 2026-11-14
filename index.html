@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Ghar</title>
     <meta name="theme-color" content="#f5f6f8">
-    <script>(function(){try{var t=localStorage.getItem('f6_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;var g=localStorage.getItem('f6_glass')||'off';document.documentElement.dataset.glass=g;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0d0e12':'#f5f6f8');}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem('f6_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0d0e12':'#f5f6f8');}catch(e){}})();</script>
     <link rel="icon"
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏠</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,89 +52,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { -webkit-text-size-adjust: 100%; }
 
-        /* ============================================================
-           iOS "Liquid Glass" mode — opt-in via <html data-glass="on">.
-           An ambient colorful gradient sits behind the whole app; every
-           surface becomes translucent frosted glass over it. The clean
-           default theme is untouched when glass is off.
-           ============================================================ */
-        [data-glass="on"] {
-          /* glass surface tints (translucent, not solid) */
-          --glass: rgba(255,255,255,.55);
-          --glass-2: rgba(255,255,255,.42);
-          --glass-3: rgba(255,255,255,.30);
-          --glass-border: rgba(255,255,255,.55);
-          --glass-hi: rgba(255,255,255,.85);        /* top-edge highlight that sells "glass" */
-          --glass-blur: saturate(1.8) blur(20px);
-          --glass-shadow: 0 8px 32px rgba(31,38,90,.12), inset 0 1px 0 var(--glass-hi), inset 0 0 0 1px rgba(255,255,255,.18);
-        }
-        [data-glass="on"][data-theme="dark"] {
-          --glass: rgba(30,33,48,.52);
-          --glass-2: rgba(30,33,48,.40);
-          --glass-3: rgba(30,33,48,.28);
-          --glass-border: rgba(255,255,255,.14);
-          --glass-hi: rgba(255,255,255,.22);
-          --glass-blur: saturate(1.6) blur(22px);
-          --glass-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 var(--glass-hi), inset 0 0 0 1px rgba(255,255,255,.06);
-        }
-
-        /* ambient gradient + floating colour blobs behind everything */
-        [data-glass="on"] body { position: relative; background: #eef1f8; }
-        [data-glass="on"][data-theme="dark"] body { background: #0a0b12; }
-        [data-glass="on"] body::before {
-          content: ''; position: fixed; inset: -20% -10% -10%; z-index: -2; pointer-events: none;
-          background:
-            radial-gradient(42% 38% at 18% 20%, rgba(120,140,255,.55), transparent 60%),
-            radial-gradient(40% 40% at 82% 16%, rgba(255,150,120,.48), transparent 60%),
-            radial-gradient(46% 44% at 78% 82%, rgba(120,220,180,.46), transparent 62%),
-            radial-gradient(44% 42% at 14% 84%, rgba(210,140,255,.44), transparent 60%),
-            radial-gradient(50% 50% at 50% 50%, rgba(255,215,140,.30), transparent 70%);
-          filter: saturate(1.05);
-          animation: glassdrift 26s ease-in-out infinite alternate;
-        }
-        [data-glass="on"][data-theme="dark"] body::before { filter: saturate(1.1) brightness(.7); }
-        [data-glass="on"] body::after {
-          content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-          backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-          background: rgba(255,255,255,.04);
-        }
-        @keyframes glassdrift {
-          0%   { transform: translate3d(0,0,0) scale(1); }
-          100% { transform: translate3d(0,-3%,0) scale(1.08); }
-        }
-        @media (prefers-reduced-motion: reduce) { [data-glass="on"] body::before { animation: none; } }
-
-        /* frost every surface */
-        [data-glass="on"] .card,
-        [data-glass="on"] .banner-setup,
-        [data-glass="on"] .me-chip,
-        [data-glass="on"] .stat-card,
-        [data-glass="on"] .task-chip,
-        [data-glass="on"] .msg-preview,
-        [data-glass="on"] .saved-menu,
-        [data-glass="on"] .modal,
-        [data-glass="on"] .input,
-        [data-glass="on"] .btn,
-        [data-glass="on"] .tabs {
-          background: var(--glass); border-color: var(--glass-border);
-          -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
-        }
-        [data-glass="on"] .card, [data-glass="on"] .modal { box-shadow: var(--glass-shadow); }
-        [data-glass="on"] .card.shadow { box-shadow: var(--glass-shadow); }
-        [data-glass="on"] .tabbar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-        [data-glass="on"] .tabs { box-shadow: var(--glass-shadow); }
-        [data-glass="on"] .tab.active { background: var(--glass-hi); }
-        [data-glass="on"] .input { background: var(--glass-3); }
-        [data-glass="on"] .input:focus { background: var(--glass-2); }
-        /* keep primary/wa/danger buttons vivid — they're the accent, not glass */
-        [data-glass="on"] .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-        [data-glass="on"] .btn.wa { background: var(--wa); -webkit-backdrop-filter: none; backdrop-filter: none; }
-        [data-glass="on"] .btn.danger { background: var(--danger); -webkit-backdrop-filter: none; backdrop-filter: none; }
-        [data-glass="on"] .hero-glow { opacity: .5; mix-blend-mode: overlay; }
-        [data-glass="on"] .to-top { background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-color: var(--glass-border); }
-        /* readability: text needs a touch more weight over busy backgrounds */
-        [data-glass="on"] .brand { text-shadow: 0 1px 12px rgba(255,255,255,.25); }
-        [data-glass="on"][data-theme="dark"] .brand { text-shadow: 0 1px 14px rgba(0,0,0,.4); }
 
         body { background: var(--bg); font-family: 'Inter', Helvetica, Arial, sans-serif; color: var(--ink); }
         a { color: var(--accent-ink); }
@@ -186,20 +103,10 @@
         [data-theme="dark"] .tabbar { background: color-mix(in oklab, var(--bg) 62%, transparent); }
         @supports not (backdrop-filter: blur(1px)) { .tabbar { background: var(--bg); } }
 
-        /* scroll-to-top */
-        .to-top { position: fixed; right: 18px; bottom: 22px; z-index: 60; width: 44px; height: 44px; border-radius: 50%;
-                  border: 1px solid var(--border); background: color-mix(in oklab, var(--surface) 82%, transparent);
-                  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--ink-2); cursor: pointer;
-                  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-card);
-                  opacity: 0; transform: translateY(12px) scale(.9); pointer-events: none;
-                  transition: opacity .22s ease, transform .22s cubic-bezier(.2,.8,.3,1), background .15s; }
-        .to-top.show { opacity: 1; transform: none; pointer-events: auto; }
-        .to-top:hover { background: var(--surface); color: var(--ink); }
-        .to-top:active { transform: scale(.92); }
 
         /* card entrance — a gentle staggered rise on tab change */
         @media (prefers-reduced-motion: no-preference) {
-          .container.enter > .card, .container.enter > .banner-warn, .container.enter > div > .stat-grid { animation: cardrise .4s cubic-bezier(.2,.8,.3,1) both; }
+          .container.enter > .card, .container.enter > .banner-warn { animation: cardrise .4s cubic-bezier(.2,.8,.3,1) both; }
           .container.enter > *:nth-child(2) { animation-delay: .03s; }
           .container.enter > *:nth-child(3) { animation-delay: .06s; }
           .container.enter > *:nth-child(4) { animation-delay: .09s; }
@@ -277,10 +184,7 @@
         label.fld { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); margin: 12px 0 5px; text-transform: uppercase; letter-spacing: 0.03em; }
 
         /* ============ stats / lists ============ */
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
         .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
-        .fair-note { margin-top: 14px; font-size: 13px; color: var(--warn-ink); background: var(--warn-soft); border: 1px solid var(--warn-border); border-radius: 12px; padding: 10px 14px; }
 
         .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .row { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
@@ -325,16 +229,6 @@
         .spinner { width: 22px; height: 22px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ============ login mascot ============ */
-        .mascot-clip { position: relative; height: 58px; overflow: hidden; margin-bottom: -6px; pointer-events: none; }
-        .mascot-svg { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%) translateY(0); transition: transform .3s cubic-bezier(.2,.8,.3,1); }
-        .mascot-svg .mk-head { transition: transform .16s ease-out; }
-        .mascot-svg .mk-eye-pupil { transition: transform .1s ease-out; }
-        /* Cover hands live over the eyes; hidden (slid down + transparent) until password time. */
-        .mascot-svg .mk-cover { opacity: 0; transform: translateY(26px); transition: transform .22s ease, opacity .18s ease; transform-box: fill-box; transform-origin: center; }
-        .mascot-svg.cover .mk-cover { opacity: 1; transform: translateY(0); }
-        /* Show password: the right hand swings aside a little — one eye peeks through the gap. */
-        .mascot-svg.cover.peek #mk-cover-r { transform: translate(7px, -4px) rotate(18deg); }
         .wall-title { position: relative; z-index: 2; background: var(--surface); font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
 
         .pass-row { position: relative; display: flex; align-items: center; }
@@ -368,7 +262,6 @@
           .tabs::-webkit-scrollbar { display: none; }
           .tab { flex: 1 0 auto; text-align: center; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
           .tabbar { justify-content: stretch; margin: -4px -10px 0; padding: 8px 10px; }
-          .to-top { right: 14px; bottom: 16px; }
           .brand { font-size: 20px; }
           .hero { padding: 22px 18px 24px; }
           .hero-name { font-size: 23px; }
@@ -399,9 +292,6 @@
 </div>
 <div id="toast-box"></div>
 <div id="dialog-box"></div>
-<button class="to-top" id="to-top" type="button" aria-label="Scroll to top" title="Back to top">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>
-</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -457,18 +347,6 @@
 
     /* ================= theme (light / dark) ================= */
     const THEME_KEY = 'f6_theme';
-    const GLASS_KEY = 'f6_glass';
-    function glassOn() { return document.documentElement.dataset.glass === 'on'; }
-    function applyGlass(on, persist) {
-      document.documentElement.dataset.glass = on ? 'on' : 'off';
-      if (persist) { try { localStorage.setItem(GLASS_KEY, on ? 'on' : 'off'); } catch (e) {} }
-    }
-    function glassIcon() {
-      // a little faceted-diamond / prism glyph
-      return glassOn()
-        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 4 8v8l8 5.5L20 16V8z"/><path d="M4 8l8 4 8-4M12 12v9.5"/></svg>'
-        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 4 8v8l8 5.5L20 16V8z"/></svg>';
-    }
     function currentTheme() { return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'; }
     function applyTheme(t, persist) {
       document.documentElement.dataset.theme = t;
@@ -542,7 +420,7 @@
         const base = DEFAULT_FLATMATES.map(f => ({ ...f, ...(d.fm_overrides[f.id] || {}) }));
         const flatmates = base.concat((d.custom_flatmates || []).map(f => ({ ...f, ...(d.fm_overrides[f.id] || {}) })))
           .sort((a, b) => (a.sort || 0) - (b.sort || 0));
-        return { flatmates, turns: d.turns, makeup: d.makeup, users: d.users, settings: d.settings, gturns: d.gturns, kitchen: d.kitchen, kitchenReady: true, kitchenFlagMissing: false };
+        return { flatmates, turns: d.turns, makeup: d.makeup, users: d.users, settings: d.settings, gturns: d.gturns, kitchen: d.kitchen, kitchenReady: true };
       }
       async adminUpdateFlatmate(token, id, patch) {
         const d = this._load();
@@ -682,10 +560,7 @@
         // database made the app look healthy while ignoring the DB entirely (admin edits would
         // "work", then revert on reload). An empty table is a real setup problem — say so.
         const flatmates = f.data || [];
-        // in_kitchen missing from every row means the migration hasn't reached the API yet
-        // (Postgres has the column, PostgREST is still serving a cached schema).
-        const kitchenFlagMissing = flatmates.length > 0 && flatmates.every(x => x.in_kitchen === undefined);
-        return { flatmates, turns: t.data, makeup: m.data, users: null, settings, gturns: g.data || [], kitchen: k.data || [], kitchenReady, kitchenFlagMissing };
+        return { flatmates, turns: t.data, makeup: m.data, users: null, settings, gturns: g.data || [], kitchen: k.data || [], kitchenReady };
       }
       // Fetched lazily, only when an admin opens the Admin tab — keeps reads off the free tier.
       async fetchAudit() {
@@ -746,7 +621,7 @@
       ready: false, errorMsg: null,
       tab: 'dashboard',
       flatmates: DEFAULT_FLATMATES, turns: [], makeup: [], audit: [], auditLoaded: false, auditError: null, users: [], settings: {},
-      gturns: [], kitchen: [], kitchenReady: true, kitchenFlagMissing: false, gSkipConfirmOpen: false, // kitchen
+      gturns: [], kitchen: [], kitchenReady: true, // kitchen
       user: null, // logged-in user (public fields only — never any hash)
       session: null, // auth token; admin actions are verified server-side against it
       swapModalOpen: false, swapTargetId: null,
@@ -781,7 +656,6 @@
       }).sort((a, b) => a.start_date < b.start_date ? -1 : 1);
       state.kitchen = (d.kitchen || []).slice().sort((a, b) => (a.created_at || '') < (b.created_at || '') ? -1 : 1);
       state.kitchenReady = d.kitchenReady !== false;
-      state.kitchenFlagMissing = !!d.kitchenFlagMissing;
       if (d.users) state.users = d.users; // null when the store no longer exposes users directly
       state.settings = d.settings;
     }
@@ -856,7 +730,6 @@
     async function refresh(quiet) {
       try {
         applyData(await store.fetchAll());
-        await migrateAppName();
         if (await ensureTurnsCover()) applyData(await store.fetchAll());
         if (await ensureGroceryCover()) applyData(await store.fetchAll());
         if (await healOrphanItems()) applyData(await store.fetchAll());
@@ -904,20 +777,6 @@
       finally { _cleanupRunning = false; }
     }
 
-    // One-time rename: installs that stored the old default name migrate to Ghar.
-    // Custom names (e.g. "Azizbagh Cleaners") are left exactly as the admin set them.
-    let _renameDone = false;
-    async function migrateAppName() {
-      if (_renameDone) return;
-      _renameDone = true;
-      if (state.settings.app_name === 'Flat 6 Cleaners') {
-        try {
-          await store.updateSetting('app_name', 'Ghar');
-          state.settings.app_name = 'Ghar';
-        } catch (e) { /* non-fatal */ }
-      }
-    }
-
     // Self-heal: grocery items still owned by someone who left the kitchen move to the
     // current duty owner, so no item is ever the responsibility of a non-member.
     let _itemHealRunning = false;
@@ -929,13 +788,13 @@
       if (!oid) return false;
       _itemHealRunning = true;
       try {
-        for (const i of orphans) await store.updateKitchenItem(i.id, { owner_id: oid, helped: false });
+        for (const i of orphans) await store.updateKitchenItem(i.id, { owner_id: oid });
         return true;
       } catch (e) { return false; }
       finally { _itemHealRunning = false; }
     }
 
-    // Menus & chapati counts older than 7 days are deleted from settings so the table stays tiny.
+    // Menus (and leftover chapati counts) older than 7 days are deleted from settings so the table stays tiny.
     let _menuCleanupDone = false;
     async function cleanupOldMenus() {
       if (_menuCleanupDone || !state.user) return;
@@ -1061,22 +920,6 @@
         return [m.lunch, m.dinner].filter(Boolean).join('\n'); // old lunch/dinner format
       } catch (e) { return ''; }
     }
-    /* chapati counts: per-person, per-day — stored compactly as one settings key per day
-       (chapati_YYYY-MM-DD = {"<flatmateId>": n}) plus a chapati_defaults map for people
-       who eat the same number daily. Only your own count + the flat total are shown. */
-    function chapatiDefaults() { try { return JSON.parse(state.settings.chapati_defaults || '{}') || {}; } catch (e) { return {}; } }
-    function chapatiMapFor(iso) { try { return JSON.parse(state.settings['chapati_' + iso] || '{}') || {}; } catch (e) { return {}; } }
-    function chapatiCountFor(iso, fmId) {
-      const map = chapatiMapFor(iso), d = chapatiDefaults();
-      if (map[fmId] != null) return { n: Number(map[fmId]), from: 'set' };
-      if (d[fmId] != null) return { n: Number(d[fmId]), from: 'default' };
-      return { n: 0, from: 'unset' };
-    }
-    function chapatiTotal(iso) {
-      let total = 0, setCount = 0;
-      kitchenMates().forEach(f => { const c = chapatiCountFor(iso, f.id); if (c.from !== 'unset') { total += c.n; setCount++; } });
-      return { total, setCount };
-    }
     function currentGroceryTurn() {
       const now = new Date(), turns = state.gturns;
       for (let i = 0; i < turns.length; i++) {
@@ -1107,67 +950,25 @@
         ? { label: 'Pending', bg: 'var(--warn-soft)', color: 'var(--warn-ink)' }
         : { label: 'All set', bg: 'var(--success-soft)', color: 'var(--success-ink)' };
     }
-    function computeGroStats() {
-      const totals = {}, dutyN = {}, helpedN = {};
-      kitchenMates().forEach(f => { totals[f.id] = 0; dutyN[f.id] = 0; helpedN[f.id] = 0; });
-      state.kitchen.forEach(i => {
-        if (i.status !== 'bought') return;
-        totals[i.owner_id] = (totals[i.owner_id] || 0) + 1;
-        if (i.helped) helpedN[i.owner_id] = (helpedN[i.owner_id] || 0) + 1;
-        else dutyN[i.owner_id] = (dutyN[i.owner_id] || 0) + 1;
-      });
-      return { totals, dutyN, helpedN, maxT: Math.max(1, ...Object.values(totals)) };
-    }
     /* the whole point: one clean message to the maid, sent the NIGHT BEFORE — so everything
-       in it (menu, chapatis, grocery items) is about tomorrow, matching the 22:00 deadline. */
+       in it (menu, grocery items) is about tomorrow, matching the 22:00 deadline. */
     function maidMessage() {
       const t = tomorrowIso();
       const menu = menuTextFor(t);
       const dateLabel = new Date(t + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
       let msg = '🍳 Kal ka khana — ' + dateLabel;
       msg += menu ? '\n' + menu : '\nMenu not set — please cook the usual.';
-      const ch = chapatiTotal(t);
-      if (ch.setCount) msg += '\n\n🫓 Chapatis: ' + ch.total;
       const items = state.kitchen.filter(i => i.needed_for === t);
-      const avail = [];
-      items.filter(i => i.status === 'bought').forEach(i => avail.push(i.name + ' ✓'));
-      items.filter(i => i.status === 'needed' && i.helped).forEach(i => avail.push(i.name + ' (' + findFlatmate(i.owner_id).name + ' bringing)'));
-      const missing = items.filter(i => i.status === 'needed' && !i.helped);
+      const avail = items.filter(i => i.status === 'bought').map(i => i.name + ' ✓');
+      const missing = items.filter(i => i.status === 'needed');
       if (avail.length) msg += '\n\n🛒 Available: ' + avail.join(', ');
       if (missing.length) msg += (avail.length ? '\n' : '\n\n') + '⚠️ Not available yet: ' + missing.map(i => i.name).join(', ') + ' — please adjust if needed';
       return msg;
-    }
-    function kitchenFlatMessage() {
-      const oid = groceryOwnerId();
-      const needed = neededKitchenItems();
-      const mT = menuTextFor(tomorrowIso());
-      const chT = chapatiTotal(tomorrowIso());
-      let msg = '🛒 ' + appName() + ' — kitchen update';
-      if (oid) msg += '\nGrocery owner this week: ' + findFlatmate(oid).name;
-      if (needed.length) msg += '\nStill needed (' + needed.length + '): ' + needed.map(i => i.name + ' → ' + findFlatmate(i.owner_id).name).join(', ');
-      else msg += '\nAll grocery items bought ✅';
-      msg += '\n🫓 Chapatis for tomorrow: ' + chT.total + ' (' + chT.setCount + '/' + kitchenMates().length + ' counted)';
-      if (!mT) msg += "\n📋 Tomorrow's food is not set yet — someone add it!";
-      return msg + (state.settings.app_url ? '\n' + state.settings.app_url : '');
     }
     // True when the food board has typed-but-unsaved text (explicit-save model).
     function hasUnsavedMenu() {
       const ta = document.querySelector('[data-menu-date]');
       return !!ta && ta.value.replace(/\s+$/, '') !== menuTextFor(ta.dataset.menuDate);
-    }
-    function groceryNudgeMessage() {
-      const due = kitchenDue();
-      if (!due.items.length) return '';
-      const byOwner = {};
-      due.items.forEach(i => { (byOwner[i.owner_id] = byOwner[i.owner_id] || []).push(i.name); });
-      const owners = Object.keys(byOwner);
-      const target = due.items.some(i => i.needed_for <= todayIso()) ? 'today' : 'tomorrow';
-      const n = due.items.length;
-      if (owners.length === 1) {
-        return '⚠️ ' + findFlatmate(Number(owners[0])).name + ', ' + n + ' item' + (n === 1 ? ' is' : 's are') + ' still needed for ' + target + ': ' + due.items.map(i => i.name).join(', ') + (state.settings.app_url ? '\n' + state.settings.app_url : '');
-      }
-      const parts = owners.map(id => findFlatmate(Number(id)).name + ': ' + byOwner[id].join(', '));
-      return '⚠️ ' + n + ' items still needed for ' + target + ' — ' + parts.join(' · ') + (state.settings.app_url ? '\n' + state.settings.app_url : '');
     }
 
     /* WhatsApp message */
@@ -1284,24 +1085,14 @@
         setTimeout(() => document.documentElement.classList.remove('theming'), 350);
         render();
       },
-      'toggle-glass': () => {
-        document.documentElement.classList.add('theming');
-        applyGlass(!glassOn(), true);
-        setTimeout(() => document.documentElement.classList.remove('theming'), 350);
-        render();
-      },
       'logout': () => { if (state.session) store.logoutSession(state.session); state.user = null; state.session = null; localStorage.removeItem('f6_token'); localStorage.removeItem('f6_session'); state.tab = 'dashboard'; render(); },
       'go-schedule': (el, e) => { e.preventDefault(); state.tab = 'schedule'; render(); },
       'toggle-pass': (el) => {
         const inp = document.getElementById(el.dataset.target);
-        const monkey = el.dataset.monkey ? document.getElementById(el.dataset.monkey) : null;
         if (!inp) return;
         const show = inp.type === 'password';
         inp.type = show ? 'text' : 'password';
         el.textContent = show ? 'Hide' : 'Show';
-        // Show: one hand swings aside — monkey peeks through the gap with one eye.
-        // Hide: hand comes back, both eyes covered.
-        if (monkey) { monkey.classList.add('cover'); monkey.classList.toggle('peek', show); }
       },
       'share-wa': () => {
         const msg = waMessage();
@@ -1573,38 +1364,6 @@
       'close-changepass': () => { state.changePassOpen = false; render(); },
 
       /* ----- kitchen ----- */
-      'gro-skip': () => { state.gSkipConfirmOpen = true; render(); },
-      'gro-skip-cancel': () => { state.gSkipConfirmOpen = false; render(); },
-      'gro-skip-confirm': () => {
-        const t = currentGroceryTurn();
-        state.gSkipConfirmOpen = false;
-        if (!t) return render();
-        if (!canManageTurn(t)) return toast('Only ' + turnAssignee(t).name + ' (or an admin) can do this');
-        const n = nextOpenTurn('kitchen', t);
-        if (!n) return toast('No later week to move to');
-        const away = activeAssigneeId(t), coverId = activeAssigneeId(n);
-        mutate(async () => {
-          await moveTurnLater('kitchen', t, n);
-          await store.insertAudit(byLine(away) + ' marked away for grocery duty ' + t.rangeLabel + ' — ' + findFlatmate(coverId).name + ' covers, moved to ' + n.rangeLabel);
-          // hand this week's still-needed default items to whoever now owns the duty
-          for (const it of state.kitchen) {
-            if (it.status === 'needed' && it.owner_id === away && !it.helped) await store.updateKitchenItem(it.id, { owner_id: coverId });
-          }
-        }, findFlatmate(coverId).name + ' covers this week ✓');
-      },
-      'gro-accept-makeup': (el) => {
-        const entry = state.makeup.find(m => String(m.id) === String(el.dataset.id));
-        if (!entry) return;
-        if (!(isAdmin() || myFlatmateId() === entry.person_id)) return toast('Only ' + findFlatmate(entry.person_id).name + ' (or an admin) can accept');
-        const t = state.gturns.find(x => x.id > entry.source_turn_id && x.start_date > todayIso());
-        if (!t) return toast('No upcoming grocery week available');
-        mutate(async () => {
-          const coveredId = activeAssigneeId(t);
-          await store.updateGroceryTurn(t.id, { assignee_id: entry.person_id, swap: { fromId: coveredId, toId: entry.person_id, status: 'accepted', type: 'makeup' } });
-          await store.updateMakeup(entry.id, { resolved: true, resolved_label: t.rangeLabel });
-          await store.insertAudit(byLine(entry.person_id) + ' took grocery duty ' + t.rangeLabel + ' as a makeup week');
-        });
-      },
       'item-bought': (el) => {
         const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
         if (!it || it.status === 'bought') return;
@@ -1614,21 +1373,6 @@
           await store.insertAudit(meName() + ' bought "' + it.name + '"');
         });
       },
-      'item-take': (el) => {
-        const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
-        const me = myFlatmateId();
-        if (!it || it.status === 'bought') return;
-        if (!me) return toast('Your login is not linked to a flatmate');
-        if (!isKitchenMate(me)) return toast('Only kitchen members can take items');
-        if (it.owner_id === me) return;
-        const prev = findFlatmate(it.owner_id).name;
-        const gt = currentGroceryTurn();
-        const helped = !gt || activeAssigneeId(gt) !== me; // taking an item off the duty owner = helping out
-        mutate(async () => {
-          await store.updateKitchenItem(it.id, { owner_id: me, helped });
-          await store.insertAudit(meName() + ' will bring "' + it.name + '" (was ' + prev + ')');
-        });
-      },
       'item-remove': (el) => {
         const it = state.kitchen.find(x => String(x.id) === String(el.dataset.id));
         if (!it) return;
@@ -1636,28 +1380,6 @@
         mutate(async () => {
           await store.deleteKitchenItem(it.id);
           await store.insertAudit(meName() + ' removed "' + it.name + '" from the grocery list');
-        });
-      },
-      'chap-set': (el) => {
-        const me = myFlatmateId();
-        if (!me) return toast('Your login is not linked to a flatmate');
-        const iso = tomorrowIso();
-        const map = chapatiMapFor(iso);
-        const cur = chapatiCountFor(iso, me).n;
-        const next = Math.max(0, Math.min(20, cur + Number(el.dataset.delta)));
-        if (next === cur && map[me] != null) return;
-        map[me] = next;
-        mutate(async () => { await store.updateSetting('chapati_' + iso, JSON.stringify(map)); }, null);
-      },
-      'chap-default': () => {
-        const me = myFlatmateId();
-        if (!me) return;
-        const val = chapatiCountFor(tomorrowIso(), me).n;
-        const d = chapatiDefaults();
-        d[me] = val;
-        mutate(async () => {
-          await store.updateSetting('chapati_defaults', JSON.stringify(d));
-          await store.insertAudit(meName() + ' set their daily chapati default to ' + val);
         });
       },
       'toggle-cleaning-member': (el) => toggleMember(Number(el.dataset.id), 'cleaning'),
@@ -1727,11 +1449,6 @@
         if (hasUnsavedMenu()) return toast("Save tomorrow's food first");
         window.open('https://wa.me/?text=' + encodeURIComponent(maidMessage()), '_blank');
       },
-      'share-kitchen': () => {
-        if (hasUnsavedMenu()) return toast("Save tomorrow's food first");
-        window.open('https://wa.me/?text=' + encodeURIComponent(kitchenFlatMessage()), '_blank');
-      },
-      'nudge-grocery': () => { const m = groceryNudgeMessage(); if (m) window.open('https://wa.me/?text=' + encodeURIComponent(m), '_blank'); },
     };
 
     document.addEventListener('click', (e) => {
@@ -1759,63 +1476,12 @@
       if (lbl) { lbl.textContent = dirty ? 'Unsaved changes' : 'No unsaved changes'; lbl.style.color = dirty ? 'var(--warn-ink)' : 'var(--ink-4)'; }
     });
 
-    // Login mascot: peeks over the "wall" (the title), eyes track where your text
-    // actually is in the username field, and it ducks behind the wall for the password.
-    function loginMascot() { return document.getElementById('login-mascot'); }
-    let _mkCanvas = null;
-    function textPixelFrac(inp) {
-      // Where is the end of the typed text, as a fraction of the field width? 0 = left, 1 = right.
-      if (!inp.value) return 0.08; // empty: look at the left edge where typing will start
-      if (!_mkCanvas) _mkCanvas = document.createElement('canvas');
-      const ctx = _mkCanvas.getContext('2d');
-      const cs = getComputedStyle(inp);
-      ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-      const caret = inp.selectionStart != null ? inp.selectionStart : inp.value.length;
-      const w = ctx.measureText(inp.value.slice(0, caret)).width + parseFloat(cs.paddingLeft || '0');
-      const usable = inp.clientWidth || 1;
-      return Math.max(0, Math.min(1, w / usable));
-    }
-    function monkeyWatch() {
-      const m = loginMascot(); if (!m) return;
-      m.classList.remove('cover', 'peek');
-      const inp = document.getElementById('login-user');
-      if (!inp) return;
-      const frac = textPixelFrac(inp);
-      const dx = (frac - 0.5) * 7;          // pupils slide toward the text
-      const dy = 2.5;                        // and look DOWN at the field
-      const headShift = (frac - 0.5) * 8;    // head leans the same way
-      const pl = document.getElementById('mk-pupil-l');
-      const pr = document.getElementById('mk-pupil-r');
-      const head = document.getElementById('mk-head');
-      if (pl) pl.setAttribute('transform', `translate(${dx.toFixed(1)},${dy})`);
-      if (pr) pr.setAttribute('transform', `translate(${dx.toFixed(1)},${dy})`);
-      if (head) head.setAttribute('transform', `translate(${headShift.toFixed(1)},0) rotate(${((frac - 0.5) * 5).toFixed(1)} 45 30)`);
-    }
-    function monkeyCover() {
-      const m = loginMascot(); if (!m) return;
-      m.classList.remove('peek');
-      m.classList.add('cover');             // hands up over the eyes — no peeking!
-      // reset gaze so the pupils sit centered behind the hands
-      const pl = document.getElementById('mk-pupil-l');
-      const pr = document.getElementById('mk-pupil-r');
-      const head = document.getElementById('mk-head');
-      if (pl) pl.setAttribute('transform', 'translate(0,0)');
-      if (pr) pr.setAttribute('transform', 'translate(0,0)');
-      if (head) head.setAttribute('transform', 'translate(0,0)');
-    }
-    document.addEventListener('focusin', (e) => {
-      if (e.target.id === 'login-user') monkeyWatch();
-      else if (e.target.id === 'login-pass') monkeyCover();
-    });
     document.addEventListener('input', (e) => {
       if (e.target.id !== 'login-user') return;
-      monkeyWatch();
       // a different username may not be an admin: close the password box again
       document.getElementById('login-pass-wrap').hidden = true;
       document.getElementById('login-pass').value = '';
     });
-    document.addEventListener('keyup', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
-    document.addEventListener('click', (e) => { if (e.target.id === 'login-user') monkeyWatch(); });
 
     document.addEventListener('change', (e) => {
       if (e.target.id === 'rs-start') { state.rs = { order: [], startId: Number(e.target.value) }; render(); } // reshuffleView re-lines the order up
@@ -1991,43 +1657,6 @@
         <div class="login-card">
           <button class="icon-btn login-theme" type="button" data-action="toggle-theme" title="Switch light/dark mode" aria-label="Switch light/dark mode">${themeIcon()}</button>
           <div style="text-align:center;margin-bottom:22px;">
-            <div class="mascot-clip">
-              <svg class="mascot-svg" id="login-mascot" width="90" height="72" viewBox="0 0 90 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <g class="mk-head" id="mk-head">
-                  <!-- ears -->
-                  <circle cx="16" cy="26" r="10" fill="#8a5a3b"/>
-                  <circle cx="16" cy="26" r="5" fill="#b07d54"/>
-                  <circle cx="74" cy="26" r="10" fill="#8a5a3b"/>
-                  <circle cx="74" cy="26" r="5" fill="#b07d54"/>
-                  <!-- head -->
-                  <ellipse cx="45" cy="28" rx="27" ry="24" fill="#8a5a3b"/>
-                  <!-- face -->
-                  <ellipse cx="45" cy="34" rx="19" ry="17" fill="#e9c9a8"/>
-                  <!-- eyes (whites) -->
-                  <ellipse cx="37" cy="27" rx="6.5" ry="7" fill="#fff"/>
-                  <ellipse cx="53" cy="27" rx="6.5" ry="7" fill="#fff"/>
-                  <!-- pupils (track your typing) -->
-                  <circle class="mk-eye-pupil" id="mk-pupil-l" cx="37" cy="27" r="3.2" fill="#2a1c10"/>
-                  <circle class="mk-eye-pupil" id="mk-pupil-r" cx="53" cy="27" r="3.2" fill="#2a1c10"/>
-                  <!-- nose + mouth -->
-                  <ellipse cx="42" cy="39" rx="1.6" ry="1.1" fill="#7a4a2a"/>
-                  <ellipse cx="48" cy="39" rx="1.6" ry="1.1" fill="#7a4a2a"/>
-                  <path d="M40 44 Q45 47 50 44" stroke="#7a4a2a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                  <!-- hands that cover the eyes for the password -->
-                  <g class="mk-cover" id="mk-cover-l">
-                    <ellipse cx="37" cy="27" rx="8.5" ry="7.5" fill="#8a5a3b"/>
-                    <ellipse cx="37" cy="25.5" rx="6.5" ry="4.5" fill="#b07d54"/>
-                  </g>
-                  <g class="mk-cover" id="mk-cover-r">
-                    <ellipse cx="53" cy="27" rx="8.5" ry="7.5" fill="#8a5a3b"/>
-                    <ellipse cx="53" cy="25.5" rx="6.5" ry="4.5" fill="#b07d54"/>
-                  </g>
-                </g>
-                <!-- hands gripping the top of the wall -->
-                <g><ellipse cx="24" cy="66" rx="7.5" ry="5" fill="#8a5a3b"/><ellipse cx="24" cy="64" rx="6" ry="3" fill="#b07d54"/></g>
-                <g><ellipse cx="66" cy="66" rx="7.5" ry="5" fill="#8a5a3b"/><ellipse cx="66" cy="64" rx="6" ry="3" fill="#b07d54"/></g>
-              </svg>
-            </div>
             <div class="wall-title">${esc(appName())}</div>
             <div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Sign in to your ghar</div>
           </div>
@@ -2038,7 +1667,7 @@
               <label class="fld" for="login-pass">Password</label>
               <div class="pass-row">
                 <input class="input" id="login-pass" type="password" autocomplete="current-password">
-                <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass" data-monkey="login-mascot">Show</button>
+                <button type="button" class="pass-toggle" data-action="toggle-pass" data-target="login-pass">Show</button>
               </div>
             </div>
             <button class="btn primary" type="submit" style="width:100%;margin-top:20px;">Sign in</button>
@@ -2075,7 +1704,6 @@
             <button class="btn xs" data-action="logout" style="margin-left:4px;">Log out</button>
           </div>
           <button class="icon-btn" type="button" data-action="toggle-theme" title="Switch light/dark mode" aria-label="Switch light/dark mode">${themeIcon()}</button>
-          <button class="icon-btn" type="button" data-action="toggle-glass" title="Toggle glass look" aria-label="Toggle glass look">${glassIcon()}</button>
         </div>
       </div>
       <div class="tabbar" id="tabbar">
@@ -2187,11 +1815,9 @@
           const gMeta = groStatusMeta();
           const nNeeded = neededKitchenItems().length;
           const mTom = !!menuTextFor(tomorrowIso());
-          const chT = chapatiTotal(tomorrowIso());
           const facts = [
             nNeeded ? nNeeded + ' item' + (nNeeded === 1 ? '' : 's') + ' needed' : 'nothing needed',
             mTom ? "tomorrow's food set ✓" : "tomorrow's food not set",
-            '🫓 ' + chT.total + ' (' + chT.setCount + '/' + kitchenMates().length + ')',
           ].join(' · ');
           html += `
       <div class="card shadow" style="padding:22px 28px;">
@@ -2249,7 +1875,6 @@
         <a href="#" data-action="go-schedule" style="display:inline-block;padding:10px 0;font-size:14px;font-weight:600;text-decoration:none;">View full schedule →</a>
       </div>`;
 
-      html += renderTotals(false);
       return html;
     }
 
@@ -2260,18 +1885,12 @@
       const vals = Object.values(totals);
       // No flatmates (e.g. empty table) — return a neutral shape rather than crashing the
       // whole render; the dashboard shows a setup banner instead.
-      if (!vals.length) return { totals, maxT: 1, mostId: null, leastId: null, unfair: false };
-      const maxT = Math.max(1, ...vals), minT = Math.min(...vals);
-      const ids = Object.keys(totals);
-      const mostId = ids.reduce((x, y) => totals[x] >= totals[y] ? x : y);
-      const leastId = ids.reduce((x, y) => totals[x] <= totals[y] ? x : y);
-      return { totals, maxT, mostId, leastId, unfair: (Math.max(...vals) - minT) >= 2 };
+      return { totals, maxT: Math.max(1, ...vals) };
     }
 
-    function renderTotals(barsOnly) {
+    function renderTotals() {
       const s = computeStats();
-      if (barsOnly) {
-        return `
+      return `
         <div class="card" style="padding:24px 28px;">
           <div class="kicker" style="margin-bottom:16px;">Cleaning · completed</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
@@ -2283,25 +1902,6 @@
             </div>`).join('')}
           </div>
         </div>`;
-      }
-      const fairNote = s.unfair
-        ? `<div class="fair-note">⚖️ ${esc(findFlatmate(Number(s.mostId)).name)} has cleaned the most, ${esc(findFlatmate(Number(s.leastId)).name)} the least — consider balancing the next few swaps.</div>` : '';
-      return `
-      <div>
-        <div class="kicker" style="margin-bottom:12px;padding-left:2px;">Cleaning totals</div>
-        <div class="stat-grid">
-          ${activeFlatmates().map(f => `
-          <div class="stat-card">
-            ${av(f, 40, 15)}
-            <div style="font-size:13px;font-weight:600;">${esc(f.name)}</div>
-            <div style="font-size:20px;font-weight:800;">${s.totals[f.id]}</div>
-            <div style="font-size:11px;color:var(--ink-3);">cleanings</div>
-            ${s.unfair && String(f.id) === s.mostId ? '<div class="badge" style="background:var(--warn-soft);color:var(--warn-ink);">MOST</div>' : ''}
-            ${s.unfair && String(f.id) === s.leastId ? '<div class="badge" style="background:var(--accent-soft);color:var(--accent-ink);">LEAST</div>' : ''}
-          </div>`).join('')}
-        </div>
-        ${fairNote}
-      </div>`;
     }
 
     function renderSchedule() {
@@ -2368,7 +1968,7 @@
 
     function renderHistory() {
       const done = state.turns.filter(t => turnStatus(t) === 'completed').slice().reverse();
-      return renderTotals(true) + `
+      return renderTotals() + `
       <div class="card" style="overflow:hidden;">
         <div style="padding:20px 24px;border-bottom:1px solid var(--border-soft);font-size:18px;font-weight:700;">History</div>
         ${done.length === 0 ? '<div class="boot">No completed cleanings yet.</div>' : ''}
@@ -2413,7 +2013,6 @@
       const o = turnAssignee(gt);
       const meta = groStatusMeta();
       const due = kitchenDue();
-      const canAct = canManageTurn(gt);
       const dl = daysLeft(gt);
       const needed = neededKitchenItems();
       const boughtRecent = state.kitchen.filter(i => i.status === 'bought').slice(-6).reverse();
@@ -2430,7 +2029,7 @@
           <div style="font-size:20px;line-height:1;">🛒</div>
           <div style="flex:1;">
             <div style="font-weight:700;font-size:14px;color:var(--danger-ink);">Groceries missing</div>
-            <div style="font-size:14px;color:var(--danger-ink);margin-top:4px;">${due.items.length} item${due.items.length === 1 ? '' : 's'} ${esc(due.label)} — the maid can't count on ${due.items.length === 1 ? 'it' : 'them'}. Use the nudge button below.</div>
+            <div style="font-size:14px;color:var(--danger-ink);margin-top:4px;">${due.items.length} item${due.items.length === 1 ? '' : 's'} ${esc(due.label)} — the maid can't count on ${due.items.length === 1 ? 'it' : 'them'}. Remind the owner.</div>
           </div>
         </div>`;
       }
@@ -2456,36 +2055,11 @@
         </div>
         <div class="hero-actions">
           <button class="btn wa lg" data-action="send-maid">🍳 Send tomorrow&#39;s menu</button>
-          <button class="btn lg" data-action="share-kitchen">📲 Share with flat</button>
-          ${due.level !== 'ok' ? `<button class="btn danger-outline" data-action="nudge-grocery">⚠️ Nudge owner</button>` : ''}
-          ${canAct ? `<button class="btn ghost" data-action="gro-skip">I'm away</button>` : ''}
         </div>
         <div class="msg-preview" title="Live preview of the maid message"><strong style="color:var(--ink-3);font-size:11px;letter-spacing:.05em;">MESSAGE TO MAID · SEND TONIGHT</strong>\n${esc(maidMessage())}</div>
       </div>`;
 
-      const owedG = state.makeup.filter(m => !m.resolved && m.kind === 'grocery');
-      if (owedG.length) {
-        html += `
-        <div class="card" style="padding:20px 24px;">
-          <div class="kicker" style="margin-bottom:14px;">Grocery makeup owed</div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            ${owedG.map(m => {
-              const f = findFlatmate(m.person_id);
-              return `
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                ${av(f, 32, 12)}
-                <div style="flex:1;font-size:14px;color:var(--ink-2);min-width:180px;"><strong>${esc(f.name)}</strong> skipped grocery duty ${esc(m.week_label)} — owes a makeup week</div>
-                <button class="btn sm primary" data-action="gro-accept-makeup" data-id="${esc(m.id)}">Accept &amp; take next week</button>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-      }
 
-      const ch = chapatiTotal(tomorrow);
-      const meKitchen = myId && isKitchenMate(myId);
-      const myCh = meKitchen ? chapatiCountFor(tomorrow, myId) : null;
-      const myDef = meKitchen ? chapatiDefaults()[myId] : null;
       html += `
       <div class="card" style="padding:24px 28px;">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
@@ -2503,24 +2077,6 @@
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <button class="btn primary sm" id="menu-save" data-action="save-menu" data-date="${tomorrow}" disabled>Save</button>
           <div id="menu-dirty" style="font-size:12px;color:var(--ink-4);">No unsaved changes</div>
-        </div>
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-          <div>
-            <div class="kicker">Chapatis · tomorrow</div>
-            <div style="font-size:26px;font-weight:800;line-height:1.3;">🫓 ${ch.total}</div>
-            <div style="font-size:12px;color:var(--ink-3);">${ch.setCount} of ${kitchenMates().length} kitchen members counted</div>
-          </div>
-          ${meKitchen ? `
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="font-size:13px;font-weight:600;color:var(--ink-2);">Yours</div>
-              <button class="btn sm" data-action="chap-set" data-delta="-1" style="width:44px;" ${myCh.n <= 0 ? 'disabled' : ''}>−</button>
-              <div style="font-size:18px;font-weight:800;min-width:26px;text-align:center;">${myCh.n}</div>
-              <button class="btn sm" data-action="chap-set" data-delta="1" style="width:44px;">＋</button>
-            </div>
-            <div style="font-size:11px;color:var(--ink-3);">${myCh.from === 'default' ? 'Using your daily default' : (myCh.from === 'unset' ? 'Not counted yet — tap ＋ (0 = not eating)' : (myDef != null ? 'Daily default: ' + myDef : ''))}</div>
-            ${myCh.from === 'set' && Number(myDef) !== myCh.n ? `<button class="btn xs" data-action="chap-default">Save ${myCh.n} as my daily default</button>` : ''}
-          </div>` : '<div style="font-size:12px;color:var(--ink-3);max-width:200px;">Each flatmate sets their own count (or a daily default) — only the total is shown.</div>'}
         </div>
       </div>`;
 
@@ -2553,12 +2109,11 @@
               <div style="font-size:12px;color:var(--ink-3);">added by ${esc(i.added_by || '?')}</div>
             </div>
             ${dueChip}
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;" title="${i.helped ? 'Helping out (took it over)' : 'On duty — owns it by default'}">
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
               ${av(f, 24, 10)}
-              <div style="font-size:12px;font-weight:600;color:var(--ink-2);">${esc(f.name)}${i.helped ? ' · helping' : ''}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--ink-2);">${esc(f.name)}</div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0;">
-              ${meKitchen && myId !== i.owner_id ? `<button class="btn xs" data-action="item-take" data-id="${esc(i.id)}">I'll bring it</button>` : ''}
               ${canManageItem(i) ? `<button class="btn xs primary" data-action="item-bought" data-id="${esc(i.id)}">Bought ✓</button>` : ''}
               ${canManageItem(i) ? `<button class="btn xs" data-action="item-remove" data-id="${esc(i.id)}" title="Remove item">×</button>` : ''}
             </div>
@@ -2589,25 +2144,6 @@
       </div>`;
       }
 
-      const gs = computeGroStats();
-      html += `
-      <div class="card" style="padding:24px 28px;">
-        <div class="kicker" style="margin-bottom:16px;">Groceries brought</div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${kitchenMates().map(f => `
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:88px;font-size:13px;font-weight:600;flex-shrink:0;">${esc(f.name)}</div>
-            <div class="bar-track">
-              <div style="display:flex;height:100%;width:${Math.round((gs.totals[f.id] / gs.maxT) * 100)}%;border-radius:100px;overflow:hidden;">
-                <div style="background:${f.color};width:${gs.totals[f.id] ? Math.round((gs.dutyN[f.id] / gs.totals[f.id]) * 100) : 0}%;"></div>
-                <div style="background:${f.color};opacity:0.45;flex:1;"></div>
-              </div>
-            </div>
-            <div style="min-width:120px;font-size:12px;color:var(--ink-3);text-align:right;flex-shrink:0;white-space:nowrap;"><strong style="color:var(--ink);">${gs.totals[f.id]}</strong> · ${gs.dutyN[f.id]} duty / ${gs.helpedN[f.id]} helped</div>
-          </div>`).join('')}
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--ink-4);">Solid = bought while on duty · faded = helped out on someone else's week.</div>
-      </div>`;
       return html;
     }
 
@@ -2726,7 +2262,7 @@
 
       <div class="card" style="padding:24px 28px;">
         <div class="kicker" style="margin-bottom:6px;">Flatmates</div>
-        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Tap <strong>Cleaning</strong> or <strong>Kitchen</strong> to take someone off that rota or put them back. Upcoming turns update straight away. Only kitchen members see the Kitchen tab, get grocery duty and count for chapatis.</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-bottom:14px;">Tap <strong>Cleaning</strong> or <strong>Kitchen</strong> to take someone off that rota or put them back. Upcoming turns update straight away. Only kitchen members see the Kitchen tab and get grocery duty.</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
           ${activeFlatmates().map(f => `
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border-soft);">
@@ -2887,25 +2423,6 @@
         </div>`;
       }
 
-      if (state.gSkipConfirmOpen) {
-        const gt = currentGroceryTurn();
-        if (gt) {
-          const a = turnAssignee(gt);
-          const nt = nextOpenTurn('kitchen', gt);
-          const nxt = nt ? turnAssignee(nt) : a;
-          html += `
-        <div class="modal-overlay" data-dismiss="gro-skip-cancel">
-          <div class="modal">
-            <h2>Away for grocery duty?</h2>
-            <div class="desc">${esc(a.name)} won't be around this week. <strong>${esc(nxt.name)}</strong> will cover grocery duty (this week's still-needed items move to them), and ${esc(a.name)} makes it up by taking ${nt ? nt.rangeLabel : 'the next week'}. Nobody else's week moves.</div>
-            <div class="modal-actions">
-              <button class="btn sm" data-action="gro-skip-cancel">Cancel</button>
-              <button class="btn sm primary" data-action="gro-skip-confirm">Confirm — I'm away</button>
-            </div>
-          </div>
-        </div>`;
-        }
-      }
 
       if (state.changePassOpen) {
         html += renderChangePassword(false);
@@ -2947,12 +2464,6 @@
       if (state.errorMsg) {
         html += `<div class="banner-warn"><div style="font-size:20px;line-height:1;">⚠️</div><div style="font-size:14px;color:var(--warn-ink);">${esc(state.errorMsg)}</div></div>`;
       }
-      if (state.kitchenFlagMissing) {
-        html += `<div class="banner-warn"><div style="font-size:20px;line-height:1;">🗄️</div><div style="flex:1;">
-          <div style="font-weight:700;font-size:14px;color:var(--warn-ink);">Kitchen membership not visible to the app</div>
-          <div style="font-size:14px;color:var(--warn-ink);margin-top:4px;">The <strong>in_kitchen</strong> column isn't coming back from the API, so everyone counts as a kitchen member. Run <strong>ghar_setup_v3.7.sql</strong>, then run <code style="background:var(--surface-2);padding:1px 5px;border-radius:5px;">notify pgrst, 'reload schema';</code> in the Supabase SQL editor and reload this page.</div>
-        </div></div>`;
-      }
       if (!state.flatmates.length) {
         html += `<div class="banner-warn" style="background:var(--danger-soft);border-color:var(--danger-border);"><div style="font-size:20px;line-height:1;">⚠️</div><div style="flex:1;">
           <div style="font-weight:700;font-size:14px;color:var(--danger-ink);">No flatmates in the database</div>
@@ -2977,7 +2488,6 @@
         store = (CONFIGURED && window.supabase) ? new SupaStore() : new LocalStore();
         await store.init();
         applyData(await store.fetchAll());
-        await migrateAppName();
         if (await ensureTurnsCover()) applyData(await store.fetchAll());
         if (await ensureGroceryCover()) applyData(await store.fetchAll());
         if (await healOrphanItems()) applyData(await store.fetchAll());
@@ -2986,7 +2496,6 @@
         store = new LocalStore();
         await store.init();
         applyData(await store.fetchAll());
-        await migrateAppName();
         if (await ensureTurnsCover()) applyData(await store.fetchAll());
         if (await ensureGroceryCover()) applyData(await store.fetchAll());
         state.errorMsg = 'Could not reach the database (' + (e.message || e) + '). Running in on-device demo mode.';
@@ -3007,11 +2516,8 @@
       setInterval(render, 10 * 60 * 1000);
     })();
 
-    /* ---- UI polish: sticky-bar shadow, scroll-to-top, sliding tab underline ---- */
+    /* ---- UI polish: sticky-bar shadow, sliding tab underline ---- */
     (function uiChrome() {
-      const toTop = document.getElementById('to-top');
-      if (toTop) toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
       let ticking = false;
       function onScroll() {
         if (ticking) return;
@@ -3024,7 +2530,6 @@
             const top = bar.getBoundingClientRect().top;
             bar.classList.toggle('stuck', top <= 0.5);
           }
-          if (toTop) toTop.classList.toggle('show', y > 320);
           ticking = false;
         });
       }
@@ -3052,42 +2557,12 @@
         tabs.scrollLeft = active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2; // render() resets it
       };
       // Re-place underline AND re-check scroll state after every render (render() replaces
-      // #app innerHTML; content height changes, so a stale .show/.stuck must be recomputed).
+      // #app innerHTML; content height changes, so a stale .stuck must be recomputed).
       const obs = new MutationObserver(() => requestAnimationFrame(() => { place(); onScroll(); }));
       const appEl = document.getElementById('app');
       if (appEl) obs.observe(appEl, { childList: true, subtree: true });
       requestAnimationFrame(place);
     })();
-    /* v3.9 — Liquid Glass mode (opt-in, prism icon in header): ambient animated colour-gradient
-       background with floating blobs; every surface becomes translucent frosted glass with a
-       top-edge highlight; accent buttons stay vivid. Persists like the theme. Off by default.
-       v3.8 — UI polish: sticky frosted tab bar (brand scrolls away, tabs stay), sliding gradient
-       underline on the active tab, scroll-to-top button, staggered card entrance + hover lift.
-       v3.7.2 — Self-healing rosters (real bug): ensureGroceryCover only ever CREATED missing
-       grocery weeks, so a week stored before someone left the kitchen kept naming them as
-       grocery owner forever — no reload or SQL fixed it. Current/future weeks whose assignee
-       isn't a kitchen member are now reassigned on load; orphaned grocery items move to the
-       duty owner. Past weeks are left as they actually happened.
-       v3.7.1 — Data integrity: removed the silent DEFAULT_FLATMATES fallback (it substituted
-       hardcoded people when the DB returned none, hiding real setup problems); the app now
-       warns loudly when the flatmates table is empty, or when in_kitchen isn't reaching the
-       API (stale PostgREST schema cache — everyone wrongly counts as a kitchen member).
-       v3.7 — Night-before flow: food board is tomorrow-only with an explicit Save button and a
-       'Saved' line showing what's committed; the maid message ("Kal ka khana") reads
-       tomorrow's menu, chapatis and grocery items throughout — consistent with the 22:00
-       deadline. Sending is blocked while a draft is unsaved.
-       v3.6.1 — Food board fix: today's menu is now editable (it was tomorrow-only, so 'aaj ka
-       khana' could never be set same-day); in-progress edits flush before composing any message;
-       background refreshes no longer repaint over mid-typing.
-       v3.6 — Home overview: Dashboard covers both duties (kitchen snapshot card with maid send,
-       members only), 'Your turn'/'Your duty' pills, scoped labels (Cleaning ·, Kitchen ·),
-       kitchen up-next card — both rotations now share the same visual grammar.
-       v3.5.1 — UI polish: house logo mark, gradient primary buttons, scrollable mobile tabs,
-       self-migrating rename (stored 'Flat 6 Cleaners' → 'Ghar').
-       v3.5 — Ghar: renamed from Flat 6 Cleaners; kitchen membership (admin-managed in_kitchen flag,
-       members-only Kitchen tab, grocery rotation/chapatis/fairness over kitchen roster only —
-       Zakariya excluded by default). Kitchen v1: grocery duty rotation with I'm-away/makeup,
-       default item ownership + takeovers, food board, 22:00 deadlines, maid-message composer. */
 </script>
 </body>
 </html>
